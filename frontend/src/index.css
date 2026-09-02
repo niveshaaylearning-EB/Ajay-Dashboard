@@ -1,0 +1,482 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root,
+:root[data-theme="dark"] {
+  --bg-color: #0b0f19;
+  --panel-bg: rgba(20, 27, 45, 0.6);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --text-main: #f0f4f8;
+  --text-muted: #9ba1b0;
+
+  --primary: #6366f1;
+  --primary-glow: rgba(99, 102, 241, 0.4);
+  --secondary: #8b5cf6;
+
+  --positive: #10b981;
+  --positive-bg: rgba(16, 185, 129, 0.15);
+  --negative: #ef4444;
+  --negative-bg: rgba(239, 68, 68, 0.15);
+  --accent-amber: #fbbf24;
+
+  --glass-bg: rgba(20, 27, 45, 0.4);
+  --glass-blur: blur(12px);
+
+  /* Surfaces that were raw literals scattered through this file --
+     centralized here so the light theme below can override them. */
+  --hover-overlay: rgba(255, 255, 255, 0.05);
+  --panel-border-hover: rgba(255, 255, 255, 0.15);
+  --input-bg: rgba(0, 0, 0, 0.2);
+  --select-bg: rgba(15, 20, 35, 0.92);
+  --select-chevron: #9ba1b0;
+  --select-option-bg: #0f1423;
+  --select-option-hover-bg: #1e2540;
+  --th-bg: rgba(255, 255, 255, 0.02);
+  --row-hover-bg: rgba(255, 255, 255, 0.03);
+  --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+  --tooltip-bg: rgba(15, 20, 40, 0.95);
+  --shadow-color: rgba(0, 0, 0, 0.2);
+  --shadow-color-strong: rgba(0, 0, 0, 0.35);
+}
+
+/* ── Light theme — Niveshaay brand palette (cream / navy / maroon / forest / gold) ── */
+:root[data-theme="light"] {
+  --bg-color: #f6f1e4;
+  --panel-bg: rgba(255, 253, 247, 0.82);
+  --panel-border: rgba(74, 58, 40, 0.14);
+  --text-main: #2a2118;
+  --text-muted: #544639;
+
+  --primary: #1e4d8c;
+  --primary-glow: rgba(30, 77, 140, 0.25);
+  --secondary: #c8932f;
+
+  --positive: #3c6b3a;
+  --positive-bg: rgba(60, 107, 58, 0.13);
+  --negative: #a3402e;
+  --negative-bg: rgba(163, 64, 46, 0.13);
+  --accent-amber: #92660a;
+
+  --glass-bg: rgba(255, 253, 247, 0.65);
+  --glass-blur: blur(12px);
+
+  --hover-overlay: rgba(74, 58, 40, 0.05);
+  --panel-border-hover: rgba(74, 58, 40, 0.22);
+  --input-bg: rgba(74, 58, 40, 0.045);
+  --select-bg: rgba(255, 253, 247, 0.95);
+  --select-chevron: #6f6152;
+  --select-option-bg: #fffdf7;
+  --select-option-hover-bg: #eee0bd;
+  --th-bg: rgba(74, 58, 40, 0.045);
+  --row-hover-bg: rgba(74, 58, 40, 0.03);
+  --modal-overlay-bg: rgba(42, 33, 24, 0.45);
+  --tooltip-bg: rgba(255, 253, 247, 0.98);
+  --shadow-color: rgba(74, 58, 40, 0.12);
+  --shadow-color-strong: rgba(74, 58, 40, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-color);
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.12), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.12), transparent 25%);
+  color: var(--text-main);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Glassmorphism Panel */
+.glass-panel {
+  background: var(--panel-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 32px var(--shadow-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.glass-panel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px var(--shadow-color-strong);
+  border-color: var(--panel-border-hover);
+}
+
+/* Typography */
+h1, h2, h3, h4 {
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+h2 { font-size: 1.8rem; margin-bottom: 1rem; }
+h3 { font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--text-muted); }
+
+.text-gradient {
+  /* var(--primary)/var(--secondary), not hardcoded hex: those two literal
+     pastel values were tuned only for the dark theme's near-black
+     background and read as nearly invisible on the light theme's cream
+     background (~1.3:1 contrast, far under WCAG AA's 4.5:1). The theme
+     variables already carry distinct, contrast-checked values per theme. */
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Base Layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid var(--panel-border);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border: none;
+  box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 20px var(--primary-glow);
+}
+
+.btn-secondary:hover {
+  background: var(--hover-overlay);
+  border-color: var(--panel-border-hover);
+}
+
+/* Inputs & Modals */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+input, select, textarea {
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--text-main);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* ── Select dropdown ─────────────────────────────────────────────────────────
+   Browsers render <option> elements using native OS chrome, so we must set
+   both the <select> AND <option> background explicitly, per theme -- the
+   chevron arrow is an embedded SVG data-URI, which can't reference a CSS
+   variable for its fill, so dark/light each get their own background-image.
+*/
+select {
+  background: var(--select-bg);
+  color: var(--text-main);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ba1b0' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+:root[data-theme="light"] select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236f6152' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+}
+
+select option {
+  background: var(--select-option-bg);
+  color: var(--text-main);
+}
+
+select option:checked,
+select option:hover {
+  background: var(--select-option-hover-bg);
+  color: var(--text-main);
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--modal-overlay-bg);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 500px;
+  animation: slideUp 0.3s ease;
+}
+
+/* Badges */
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.badge.positive { background: var(--positive-bg); color: var(--positive); border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge.negative { background: var(--negative-bg); color: var(--negative); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+/* Tables */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 7px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+th {
+  background: var(--th-bg);
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+tr:hover td {
+  background: var(--row-hover-bg);
+}
+
+/* Animations */
+@keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp   { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin      { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Home page — card entrance with slight spring overshoot */
+@keyframes cardEntrance {
+  0%   { opacity: 0; transform: translateY(48px) scale(0.90); }
+  55%  { opacity: 1; transform: translateY(-8px)  scale(1.02); }
+  75%  { transform: translateY(3px)  scale(0.99); }
+  100% { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* Hero title: slides down + letter-spacing collapses */
+@keyframes titleReveal {
+  0%   { opacity: 0; transform: translateY(-28px); letter-spacing: 0.18em; }
+  100% { opacity: 1; transform: translateY(0);     letter-spacing: normal; }
+}
+
+/* Subtitle fades in */
+@keyframes subtitleFade {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0);    }
+}
+
+/* Animated gradient background-position shift */
+@keyframes gradientDrift {
+  0%,100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* Floating background orbs */
+@keyframes orbFloat1 {
+  0%,100% { transform: translate(0, 0)    scale(1);    opacity: 0.55; }
+  33%     { transform: translate(40px,-30px) scale(1.08); opacity: 0.70; }
+  66%     { transform: translate(-20px,20px) scale(0.95); opacity: 0.50; }
+}
+@keyframes orbFloat2 {
+  0%,100% { transform: translate(0, 0)     scale(1);    opacity: 0.45; }
+  40%     { transform: translate(-50px,30px) scale(1.06); opacity: 0.65; }
+  70%     { transform: translate(30px,-15px) scale(0.97); opacity: 0.40; }
+}
+@keyframes orbFloat3 {
+  0%,100% { transform: translate(0, 0)    scale(1);    opacity: 0.35; }
+  50%     { transform: translate(25px,40px) scale(1.10); opacity: 0.55; }
+}
+
+/* Welcome bar slides in from top */
+@keyframes welcomeSlide {
+  0%   { opacity: 0; transform: translateY(-16px); }
+  100% { opacity: 1; transform: translateY(0);     }
+}
+
+/* Card border glow pulse (used on hover via class toggle) */
+@keyframes borderPulse {
+  0%,100% { box-shadow: 0 8px 32px rgba(0,0,0,0.2), 0 0 0 0 rgba(99,102,241,0);  }
+  50%     { box-shadow: 0 16px 48px rgba(0,0,0,0.35), 0 0 22px 2px rgba(99,102,241,0.28); }
+}
+
+/* Utility */
+.animate-slide-up { animation: slideUp 0.5s ease backwards; }
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+
+/* Home feature cards */
+.home-card {
+  animation: cardEntrance 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.home-card-d1 { animation-delay: 0.30s; }
+.home-card-d2 { animation-delay: 0.48s; }
+.home-card-d3 { animation-delay: 0.64s; }
+.home-card-d4 { animation-delay: 0.80s; }
+.home-card-d5 { animation-delay: 0.96s; }
+.home-card-d6 { animation-delay: 1.12s; }
+
+/* ── Mobile Responsive ───────────────────────────────────────────────────── */
+
+.main-header {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+}
+
+.main-header-nav {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .container { padding: 1rem; }
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.3rem; }
+}
+
+@media (max-width: 640px) {
+  .container { padding: 0.75rem; }
+
+  .main-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .main-header h1 { font-size: 1.25rem; }
+
+  .main-header-nav {
+    width: 100%;
+    gap: 6px;
+    justify-content: flex-start;
+  }
+
+  .main-header-nav .btn {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+
+  h1 { font-size: 1.3rem; }
+  h2 { font-size: 1.1rem; }
+}
+
+/* ── Print / PDF styles ────────────────────────────────────────────────────── */
+.no-print { display: revert; }
+
+@media print {
+  /* Always-hide elements */
+  .no-print,
+  header nav,
+  button,
+  input,
+  select,
+  .modal-overlay { display: none !important; }
+
+  /* Force white background & black text for readability */
+  body, .container {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  /* Remove glassmorphism blur so content is visible on paper */
+  .glass-panel {
+    background: #f8f8f8 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  /* Tables: borders visible, no hover highlight */
+  th, td {
+    border: 1px solid #ccc !important;
+    color: #111 !important;
+    background: #fff !important;
+    padding: 5px 8px !important;
+    font-size: 0.72rem !important;
+  }
+  th { background: #eee !important; }
+
+  /* Badge colours preserved via border instead of background */
+  .badge {
+    border: 1px solid currentColor;
+    background: transparent !important;
+  }
+
+  /* Allow table to break across pages */
+  .table-wrapper { overflow: visible !important; }
+  table { page-break-inside: auto; }
+  tr { page-break-inside: avoid; }
+
+  /* Keep header visible at top but strip interactive styling */
+  header { border-bottom: 1px solid #ccc !important; padding-bottom: 8px !important; }
+  header h1 { color: #111 !important; background: none !important; -webkit-text-fill-color: #111 !important; }
+
+  /* Page margins */
+  @page { margin: 15mm; }
+}

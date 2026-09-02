@@ -1,0 +1,29 @@
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/venv
+**/.venv
+
+# Node
+**/node_modules
+**/dist
+**/.npm
+
+# Dev files
+**/.git
+**/.gitignore
+**/start.bat
+**/setup.bat
+**/*.log
+**/*.zip
+
+# Secrets -- injected at container runtime via docker-compose's env_file: .env,
+# never baked into the image. Explicitly excluded here so `COPY backend/ ./backend/`
+# and similar steps can never accidentally bundle it into an image layer.
+.env
+**/.env
+
+# IDE
+**/.vscode
+**/.idea

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import fastapi, uvicorn, sqlalchemy; print\\('All backend deps OK'\\)\")",
+      "Bash(python -m uvicorn main:app --host 0.0.0.0 --port 8000)",
+      "Bash(curl -s --max-time 5 http://localhost:8000/api/baskets)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Baskets:', list\\(d.keys\\(\\)\\)\\)\")"
+    ]
+  }
+}

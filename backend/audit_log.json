@@ -1,0 +1,58 @@
+[
+  {
+    "user_email": "jay.chaudhari@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-09-02T10:56:10.417002",
+    "ip_address": "127.0.0.1",
+    "location": null
+  },
+  {
+    "user_email": "jay.chaudhari@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-08-31T08:45:37.184151",
+    "ip_address": "127.0.0.1",
+    "location": null
+  },
+  {
+    "user_email": "jay.chaudhari@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-08-27T05:56:19.174704",
+    "ip_address": "127.0.0.1",
+    "location": null
+  },
+  {
+    "user_email": "jay.chaudhari@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-08-27T05:46:18.922838",
+    "ip_address": "127.0.0.1",
+    "location": null
+  },
+  {
+    "user_email": "jay.chaudhari@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-08-26T12:07:30.982216",
+    "ip_address": "127.0.0.1",
+    "location": null
+  },
+  {
+    "user_email": "jay.chaudhari@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-08-26T11:37:34.157127",
+    "ip_address": "127.0.0.1",
+    "location": null
+  },
+  {
+    "user_email": "jay.chaudhari@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-08-14T10:57:00.816244",
+    "ip_address": "127.0.0.1",
+    "location": null
+  }
+]

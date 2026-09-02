@@ -1,0 +1,143 @@
+[
+  {
+    "action": "holdings_upload",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "31 Aug 2026 08:47 UTC",
+    "details": {
+      "basket": "Jay_Chaudhari",
+      "clientId": "PA8384",
+      "stockCount": 2,
+      "filename": "holdings-PA8384.xlsx"
+    }
+  },
+  {
+    "action": "set_client_capital",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "31 Aug 2026 08:46 UTC",
+    "details": {
+      "key": "Arjun_1",
+      "amount": 500000.0
+    }
+  },
+  {
+    "action": "add_client",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "31 Aug 2026 08:46 UTC",
+    "details": {
+      "key": "Arjun_1",
+      "label": "Arjun 1"
+    }
+  },
+  {
+    "action": "set_client_capital",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "27 Aug 2026 07:46 UTC",
+    "details": {
+      "key": "Nukul_Madaan",
+      "amount": 50000000.0
+    }
+  },
+  {
+    "action": "holdings_upload",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "27 Aug 2026 07:30 UTC",
+    "details": {
+      "basket": "Jay_Chaudhari",
+      "clientId": "PA8384",
+      "stockCount": 2,
+      "filename": "holdings-PA8384.xlsx"
+    }
+  },
+  {
+    "action": "set_client_capital",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "27 Aug 2026 07:30 UTC",
+    "details": {
+      "key": "Maitri",
+      "amount": 10000000.0
+    }
+  },
+  {
+    "action": "add_client",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "27 Aug 2026 07:29 UTC",
+    "details": {
+      "key": "Maitri",
+      "label": "Maitri"
+    }
+  },
+  {
+    "action": "holdings_upload",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "27 Aug 2026 05:57 UTC",
+    "details": {
+      "basket": "Jay_Chaudhari",
+      "clientId": "PA8384",
+      "stockCount": 2,
+      "filename": "holdings-PA8384.xlsx"
+    }
+  },
+  {
+    "action": "set_client_capital",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "27 Aug 2026 05:49 UTC",
+    "details": {
+      "key": "Ajay_Surya",
+      "amount": 10000000.0
+    }
+  },
+  {
+    "action": "add_client",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "27 Aug 2026 05:48 UTC",
+    "details": {
+      "key": "Ajay_Surya",
+      "label": "Ajay Surya"
+    }
+  },
+  {
+    "action": "set_client_capital",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "26 Aug 2026 13:16 UTC",
+    "details": {
+      "key": "Nukul_Madaan",
+      "amount": 0.0
+    }
+  },
+  {
+    "action": "set_client_capital",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "26 Aug 2026 13:02 UTC",
+    "details": {
+      "key": "Nukul_Madaan",
+      "amount": 10000000.0
+    }
+  },
+  {
+    "action": "add_client",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "14 Aug 2026 11:05 UTC",
+    "details": {
+      "key": "Jay_Chaudhari",
+      "label": "Jay Chaudhari"
+    }
+  },
+  {
+    "action": "add_client",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "14 Aug 2026 11:05 UTC",
+    "details": {
+      "key": "Nukul_Madaan",
+      "label": "Nukul Madaan"
+    }
+  },
+  {
+    "action": "add_client",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "14 Aug 2026 10:04 UTC",
+    "details": {
+      "key": "Test_Client_Alpha",
+      "label": "Test Client Alpha"
+    }
+  }
+]

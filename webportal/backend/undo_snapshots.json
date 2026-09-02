@@ -1,0 +1,719 @@
+{
+  "Nukul_Madaan": [
+    {
+      "ts": 1787816792.2912085,
+      "label": "before save 27 Aug 2026 13:16",
+      "stocks": [
+        {
+          "nseCode": "INFY",
+          "allocation": null,
+          "buyPrice": null
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 1.0,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "INFY": {
+          "buyDate": ""
+        },
+        "HDFCBANK": {
+          "buyDate": "14 Jun 2026"
+        },
+        "RELIANCE": {
+          "buyDate": "5 Aug 2026"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787816799.3599496,
+      "label": "before save 27 Aug 2026 13:16",
+      "stocks": [
+        {
+          "nseCode": "INFY",
+          "allocation": 0.09,
+          "buyPrice": null
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.91,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "INFY": {
+          "buyDate": ""
+        },
+        "HDFCBANK": {
+          "buyDate": "14 Jun 2026"
+        },
+        "RELIANCE": {
+          "buyDate": "5 Aug 2026"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787816812.6509783,
+      "label": "before save 27 Aug 2026 13:16",
+      "stocks": [
+        {
+          "nseCode": "INFY",
+          "allocation": 0.09,
+          "buyPrice": null
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.91,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "INFY": {
+          "buyDate": "6 Aug 2026"
+        },
+        "HDFCBANK": {
+          "buyDate": "14 Jun 2026"
+        },
+        "RELIANCE": {
+          "buyDate": "5 Aug 2026"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787816814.890115,
+      "label": "before save 27 Aug 2026 13:16",
+      "stocks": [
+        {
+          "nseCode": "INFY",
+          "allocation": 0.09,
+          "buyPrice": 1171.975
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.91,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "INFY": {
+          "buyDate": "9 Jul 2026"
+        },
+        "HDFCBANK": {
+          "buyDate": "14 Jun 2026"
+        },
+        "RELIANCE": {
+          "buyDate": "5 Aug 2026"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787816817.6231258,
+      "label": "before save 27 Aug 2026 13:16",
+      "stocks": [
+        {
+          "nseCode": "INFY",
+          "allocation": 0.09,
+          "buyPrice": 1054.15
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.91,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "INFY": {
+          "buyDate": "9 Jul 2026"
+        },
+        "HDFCBANK": {
+          "buyDate": "14 Jun 2026"
+        },
+        "RELIANCE": {
+          "buyDate": "5 Aug 2026"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787816819.1437619,
+      "label": "before save 27 Aug 2026 13:16",
+      "stocks": [
+        {
+          "nseCode": "INFY",
+          "allocation": 0.09,
+          "buyPrice": 1054.15
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.91,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "INFY": {
+          "buyDate": "9 Jul 2026"
+        },
+        "HDFCBANK": {
+          "buyDate": "14 Jun 2026"
+        },
+        "RELIANCE": {
+          "buyDate": "5 Aug 2026"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787816826.3087308,
+      "label": "before save 27 Aug 2026 13:17",
+      "stocks": [
+        {
+          "nseCode": "INFY",
+          "allocation": 0.09,
+          "buyPrice": 1054.15
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.91,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "INFY": {
+          "buyDate": "1 Jul 2026"
+        },
+        "HDFCBANK": {
+          "buyDate": "14 Jun 2026"
+        },
+        "RELIANCE": {
+          "buyDate": "5 Aug 2026"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787816829.3455143,
+      "label": "before save 27 Aug 2026 13:17",
+      "stocks": [
+        {
+          "nseCode": "INFY",
+          "allocation": 0.09,
+          "buyPrice": 996.925
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.91,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "INFY": {
+          "buyDate": "2 Jul 2026"
+        },
+        "HDFCBANK": {
+          "buyDate": "14 Jun 2026"
+        },
+        "RELIANCE": {
+          "buyDate": "5 Aug 2026"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787816841.4795074,
+      "label": "before save 27 Aug 2026 13:17",
+      "stocks": [
+        {
+          "nseCode": "INFY",
+          "allocation": 0.09,
+          "buyPrice": 1024.575
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.91,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "INFY": {
+          "buyDate": "2 Jul 2026"
+        },
+        "HDFCBANK": {
+          "buyDate": "14 Jun 2026"
+        },
+        "RELIANCE": {
+          "buyDate": "5 Aug 2026"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787816843.6453283,
+      "label": "before save 27 Aug 2026 13:17",
+      "stocks": [
+        {
+          "nseCode": "INFY",
+          "allocation": 0.09,
+          "buyPrice": 1024.575
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.91,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "INFY": {
+          "buyDate": "1 Jul 2020"
+        },
+        "HDFCBANK": {
+          "buyDate": "14 Jun 2026"
+        },
+        "RELIANCE": {
+          "buyDate": "5 Aug 2026"
+        }
+      },
+      "rebalanceHistory": []
+    }
+  ],
+  "Ajay_Surya": [
+    {
+      "ts": 1787809717.4038696,
+      "label": "before save 27 Aug 2026 11:18",
+      "stocks": [],
+      "sold": [],
+      "buyPriceData": {},
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787809724.0965884,
+      "label": "before save 27 Aug 2026 11:18",
+      "stocks": [
+        {
+          "nseCode": "",
+          "allocation": null,
+          "buyPrice": null
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 1.0,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {},
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787809727.8459282,
+      "label": "before save 27 Aug 2026 11:18",
+      "stocks": [
+        {
+          "nseCode": "RELIANCE",
+          "allocation": null,
+          "buyPrice": null
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 1.0,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "RELIANCE": {
+          "buyDate": ""
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787809731.6277792,
+      "label": "before save 27 Aug 2026 11:18",
+      "stocks": [
+        {
+          "nseCode": "RELIANCE",
+          "allocation": 0.04,
+          "buyPrice": null
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.96,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "RELIANCE": {
+          "buyDate": ""
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787809775.3649397,
+      "label": "before save 27 Aug 2026 11:19",
+      "stocks": [
+        {
+          "nseCode": "RELIANCE",
+          "allocation": 0.04,
+          "buyPrice": null
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.96,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "RELIANCE": {
+          "buyDate": "4 Aug 2026"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787809779.7265944,
+      "label": "before save 27 Aug 2026 11:19",
+      "stocks": [
+        {
+          "nseCode": "RELIANCE",
+          "allocation": 0.04,
+          "buyPrice": 1301.825
+        },
+        {
+          "nseCode": "",
+          "allocation": null,
+          "buyPrice": null
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.96,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "RELIANCE": {
+          "buyDate": "4 Aug 2026"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1787809782.724782,
+      "label": "before save 27 Aug 2026 11:19",
+      "stocks": [
+        {
+          "nseCode": "",
+          "allocation": null,
+          "buyPrice": null
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 1.0,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {},
+      "rebalanceHistory": []
+    }
+  ],
+  "Jay_Chaudhari": [
+    {
+      "ts": 1787815850.0805743,
+      "label": "before save 27 Aug 2026 13:00",
+      "stocks": [
+        {
+          "nseCode": "TATAPOWER",
+          "allocation": 0.512567,
+          "buyPrice": 75.25
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.487433,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "TATAPOWER": {
+          "buyDate": ""
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1788166030.2391639,
+      "label": "Broker holdings upload (holdings-PA8384.xlsx)",
+      "stocks": [],
+      "sold": [],
+      "buyPriceData": {},
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1788346815.0049255,
+      "label": "before save 02 Sep 2026 16:30",
+      "stocks": [
+        {
+          "nseCode": "TATAPOWER",
+          "allocation": 0.512567,
+          "buyPrice": 75.25
+        },
+        {
+          "nseCode": "YESBANK",
+          "allocation": 0.487433,
+          "buyPrice": 12.7786
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {},
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1788346818.0746455,
+      "label": "before save 02 Sep 2026 16:30",
+      "stocks": [
+        {
+          "nseCode": "TATAPOWER",
+          "allocation": 0.512567,
+          "buyPrice": 75.25
+        },
+        {
+          "nseCode": "YESBANK",
+          "allocation": 0.487433,
+          "buyPrice": 12.7786
+        },
+        {
+          "nseCode": "",
+          "allocation": null,
+          "buyPrice": null
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "TATAPOWER": {
+          "buyDate": ""
+        },
+        "YESBANK": {
+          "buyDate": ""
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1788346822.572423,
+      "label": "before save 02 Sep 2026 16:30",
+      "stocks": [
+        {
+          "nseCode": "TATAPOWER",
+          "allocation": 0.512567,
+          "buyPrice": 75.25
+        },
+        {
+          "nseCode": "YESBANK",
+          "allocation": 0.487433,
+          "buyPrice": 12.7786
+        },
+        {
+          "nseCode": "",
+          "allocation": null,
+          "buyPrice": null
+        },
+        {
+          "nseCode": "",
+          "allocation": null,
+          "buyPrice": null
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "TATAPOWER": {
+          "buyDate": ""
+        },
+        "YESBANK": {
+          "buyDate": ""
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1788346826.943084,
+      "label": "before save 02 Sep 2026 16:30",
+      "stocks": [
+        {
+          "nseCode": "TATAPOWER",
+          "allocation": 0.512567,
+          "buyPrice": 75.25
+        },
+        {
+          "nseCode": "YESBANK",
+          "allocation": 0.487433,
+          "buyPrice": 12.7786
+        },
+        {
+          "nseCode": "",
+          "allocation": null,
+          "buyPrice": null
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "TATAPOWER": {
+          "buyDate": ""
+        },
+        "YESBANK": {
+          "buyDate": ""
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1788346830.121044,
+      "label": "before save 02 Sep 2026 16:30",
+      "stocks": [
+        {
+          "nseCode": "TATAPOWER",
+          "allocation": 0.512567,
+          "buyPrice": 75.25
+        },
+        {
+          "nseCode": "YESBANK",
+          "allocation": 0.487433,
+          "buyPrice": 12.7786
+        },
+        {
+          "nseCode": "INFY",
+          "allocation": null,
+          "buyPrice": null
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "TATAPOWER": {
+          "buyDate": ""
+        },
+        "YESBANK": {
+          "buyDate": ""
+        },
+        "INFY": {
+          "buyDate": ""
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1788346834.7080607,
+      "label": "before save 02 Sep 2026 16:30",
+      "stocks": [
+        {
+          "nseCode": "TATAPOWER",
+          "allocation": 0.512567,
+          "buyPrice": 75.25
+        },
+        {
+          "nseCode": "YESBANK",
+          "allocation": 0.487433,
+          "buyPrice": 12.7786
+        },
+        {
+          "nseCode": "INFY",
+          "allocation": 0.1,
+          "buyPrice": null
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "TATAPOWER": {
+          "buyDate": ""
+        },
+        "YESBANK": {
+          "buyDate": ""
+        },
+        "INFY": {
+          "buyDate": ""
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1788346851.4330938,
+      "label": "before save 02 Sep 2026 16:30",
+      "stocks": [
+        {
+          "nseCode": "TATAPOWER",
+          "allocation": 0.512567,
+          "buyPrice": 75.25
+        },
+        {
+          "nseCode": "INFY",
+          "allocation": 0.1,
+          "buyPrice": null
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.387433,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "TATAPOWER": {
+          "buyDate": ""
+        },
+        "INFY": {
+          "buyDate": ""
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1788346853.5984023,
+      "label": "before save 02 Sep 2026 16:30",
+      "stocks": [
+        {
+          "nseCode": "TATAPOWER",
+          "allocation": 0.512567,
+          "buyPrice": 75.25
+        },
+        {
+          "nseCode": "INFY",
+          "allocation": 0.1,
+          "buyPrice": null
+        },
+        {
+          "nseCode": "LIQUIDCASE",
+          "allocation": 0.387433,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "TATAPOWER": {
+          "buyDate": ""
+        },
+        "INFY": {
+          "buyDate": "1 May 2020"
+        }
+      },
+      "rebalanceHistory": []
+    }
+  ]
+}

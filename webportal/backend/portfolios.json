@@ -1,0 +1,37 @@
+{
+  "Nukul_Madaan": [
+    {
+      "nseCode": "INFY",
+      "allocation": 0.09,
+      "buyPrice": 735.3
+    },
+    {
+      "nseCode": "LIQUIDCASE",
+      "allocation": 0.91,
+      "buyPrice": 100.0
+    }
+  ],
+  "Jay_Chaudhari": [
+    {
+      "nseCode": "TATAPOWER",
+      "allocation": 0.512567,
+      "buyPrice": 75.25
+    },
+    {
+      "nseCode": "INFY",
+      "allocation": 0.1,
+      "buyPrice": 708.4
+    },
+    {
+      "nseCode": "LIQUIDCASE",
+      "allocation": 0.387433,
+      "buyPrice": 100.0
+    }
+  ],
+  "Nukul_Madaan_sold": [],
+  "Ajay_Surya": [],
+  "Ajay_Surya_sold": [],
+  "Jay_Chaudhari_sold": [],
+  "Maitri": [],
+  "Arjun_1": []
+}

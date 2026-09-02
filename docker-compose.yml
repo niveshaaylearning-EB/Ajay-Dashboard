@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  nia:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nia-performance-center:latest
+    container_name: nia_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"   # single process; webportal is mounted in-process at /wp (see backend/main.py)
+    env_file:
+      - .env
+    environment:
+      - IS_DOCKER_LOCAL=true
+    volumes:
+      # Persist database and data files outside the container
+      - ./backend/portfolio.db:/app/backend/portfolio.db
+      - ./backend/historic_cache.json:/app/backend/historic_cache.json
+      - ./backend/results_calendar_cache.json:/app/backend/results_calendar_cache.json
+      - ./webportal/backend/portfolios.json:/app/webportal/backend/portfolios.json
+      - ./webportal/backend/historical_index.json:/app/webportal/backend/historical_index.json
+      - ./webportal/backend/rebalance_history.json:/app/webportal/backend/rebalance_history.json
+      - ./webportal/backend/buy_price_data.json:/app/webportal/backend/buy_price_data.json
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
