@@ -197,7 +197,7 @@ function RiskValuationPanel({ medianPE, avgMarketCap, rows }) {
   );
 }
 
-function BasketOverlapPanel({ overlap, onGoToBasket }) {
+function BasketOverlapPanel({ overlap, onGoToBasket, basketOptions }) {
   const [expandedKey, setExpandedKey] = useState(null);
   const maxPct = Math.max(...overlap.map(o => o.pct), 0.0001);
   return (
@@ -242,7 +242,7 @@ function BasketOverlapPanel({ overlap, onGoToBasket }) {
   );
 }
 
-function BasketWeightOverlapPanel({ overlap, onGoToBasket }) {
+function BasketWeightOverlapPanel({ overlap, onGoToBasket, basketOptions }) {
   const [expandedKey, setExpandedKey] = useState(null);
   const maxPct = Math.max(...overlap.map(o => o.pct), 0.0001);
   return (
@@ -321,10 +321,10 @@ export default function DashboardView({ rows, avgMarketCap, medianPE, isIPO, onV
       {((basketOverlap && basketOverlap.length > 0) || (basketWeightOverlap && basketWeightOverlap.length > 0)) && (
         <div className="dv-row-overlap">
           {basketOverlap && basketOverlap.length > 0 && (
-            <BasketOverlapPanel overlap={basketOverlap} onGoToBasket={onGoToBasket} />
+            <BasketOverlapPanel overlap={basketOverlap} onGoToBasket={onGoToBasket} basketOptions={basketOptions} />
           )}
           {basketWeightOverlap && basketWeightOverlap.length > 0 && (
-            <BasketWeightOverlapPanel overlap={basketWeightOverlap} onGoToBasket={onGoToBasket} />
+            <BasketWeightOverlapPanel overlap={basketWeightOverlap} onGoToBasket={onGoToBasket} basketOptions={basketOptions} />
           )}
         </div>
       )}
