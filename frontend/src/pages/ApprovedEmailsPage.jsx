@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Users, UserPlus, Trash2, User, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Users, UserPlus, Trash2, User, Clock, CheckCircle, XCircle, ShieldPlus, ShieldMinus } from 'lucide-react';
 import { getToken } from '../utils/auth';
 import { API_BASE as API, API_ROOT } from '../config.js';
 
@@ -12,6 +12,7 @@ export default function ApprovedEmailsPage() {
   const [newEmail,  setNewEmail]  = useState('');
   const [adding,    setAdding]    = useState(false);
   const [removing,  setRemoving]  = useState('');
+  const [togglingAdmin, setTogglingAdmin] = useState('');
   const [error,     setError]     = useState('');
   const [success,   setSuccess]   = useState('');
   const [reapprovingAll, setReapprovingAll] = useState(false);
@@ -134,6 +135,18 @@ export default function ApprovedEmailsPage() {
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to re-approve all');
     } finally { setReapprovingAll(false); }
+  };
+
+  const handleToggleAdmin = async (email, makeAdmin) => {
+    setError(''); setSuccess('');
+    setTogglingAdmin(email);
+    try {
+      await axios.post(`${API}/allowed-emails/${encodeURIComponent(email)}/set-admin`, { is_admin: makeAdmin });
+      setSuccess(makeAdmin ? `${email} is now an admin.` : `${email} is no longer an admin.`);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to update admin status');
+    } finally { setTogglingAdmin(''); }
   };
 
   const handleRemove = async (email) => {
@@ -344,6 +357,11 @@ export default function ApprovedEmailsPage() {
                   </div>
                   <div>
                     <span style={{ color: 'var(--text-main)', fontSize: '0.88rem' }}>{emailStr}</span>
+                    {em?.is_admin && (
+                      <span style={{ marginLeft: '8px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--primary)', background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '4px', padding: '1px 6px' }}>
+                        ADMIN
+                      </span>
+                    )}
                     {em?.is_approved === false && (
                       <span style={{ marginLeft: '8px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--accent-amber)', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '4px', padding: '1px 6px' }}>
                         PENDING -- can't log in yet
@@ -352,20 +370,41 @@ export default function ApprovedEmailsPage() {
                     {em?.added_at && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '1px' }}>Added {em.added_at.slice(0, 10)}</div>}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleRemove(emailStr)}
-                  disabled={removing === emailStr}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '5px',
-                    padding: '5px 12px', borderRadius: '7px',
-                    border: '1px solid rgba(239,68,68,0.28)',
-                    background: 'rgba(239,68,68,0.08)',
-                    color: 'var(--negative)', fontSize: '0.78rem', cursor: removing === emailStr ? 'not-allowed' : 'pointer',
-                    opacity: removing === emailStr ? 0.5 : 1,
-                  }}
-                >
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {em?.is_approved !== false && (
+                    <button
+                      onClick={() => handleToggleAdmin(emailStr, !em?.is_admin)}
+                      disabled={togglingAdmin === emailStr}
+                      title={em?.is_admin ? 'Remove admin access' : 'Grant admin access'}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '5px',
+                        padding: '5px 12px', borderRadius: '7px',
+                        border: `1px solid ${em?.is_admin ? 'rgba(251,191,36,0.3)' : 'rgba(99,102,241,0.3)'}`,
+                        background: em?.is_admin ? 'rgba(251,191,36,0.1)' : 'rgba(99,102,241,0.1)',
+                        color: em?.is_admin ? 'var(--accent-amber)' : 'var(--primary)',
+                        fontSize: '0.78rem', cursor: togglingAdmin === emailStr ? 'not-allowed' : 'pointer',
+                        opacity: togglingAdmin === emailStr ? 0.5 : 1,
+                      }}
+                    >
+                      {em?.is_admin ? <ShieldMinus size={12} /> : <ShieldPlus size={12} />}
+                      {togglingAdmin === emailStr ? 'Updating…' : (em?.is_admin ? 'Remove Admin' : 'Make Admin')}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleRemove(emailStr)}
+                    disabled={removing === emailStr}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                      padding: '5px 12px', borderRadius: '7px',
+                      border: '1px solid rgba(239,68,68,0.28)',
+                      background: 'rgba(239,68,68,0.08)',
+                      color: 'var(--negative)', fontSize: '0.78rem', cursor: removing === emailStr ? 'not-allowed' : 'pointer',
+                      opacity: removing === emailStr ? 0.5 : 1,
+                    }}
+                  >
                   <Trash2 size={12} /> {removing === emailStr ? 'Removing…' : 'Remove'}
                 </button>
+                </div>
               </div>
             );
           })

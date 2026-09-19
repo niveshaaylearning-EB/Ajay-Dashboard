@@ -271,6 +271,7 @@ def _dump_allowed_emails(db, raise_on_error: bool = False):
         "last_name":     r.last_name,
         "password_hash": r.password_hash,
         "is_approved":   r.is_approved if r.is_approved is not None else 1,
+        "is_admin":      r.is_admin if r.is_admin is not None else 0,
     } for r in rows]
     _save_json_push(_ALLOWED_EMAIL_FILE, data, sync=True, raise_on_error=raise_on_error)
 
@@ -349,6 +350,7 @@ async def _startup_prewarm():
                         last_name=rec.get("last_name"),
                         password_hash=rec.get("password_hash"),
                         is_approved=rec.get("is_approved", 1),
+                        is_admin=rec.get("is_admin", 0),
                     ))
                 else:
                     if "totp_secret" in rec:
@@ -365,6 +367,8 @@ async def _startup_prewarm():
                         existing.password_hash = rec["password_hash"]
                     if "is_approved" in rec:
                         existing.is_approved = rec["is_approved"]
+                    if "is_admin" in rec:
+                        existing.is_admin = rec["is_admin"]
         # Restore access requests
         _sync_access_requests_to_db(db_s)
         # Restore login history
@@ -409,6 +413,14 @@ async def _startup_prewarm():
                     user_email=rec.get("user_email"), sip_date=rec.get("sip_date"), amount=rec.get("amount")).first():
                 db_s.add(database.SimulationSip(
                     user_email=rec.get("user_email"), sip_date=rec.get("sip_date"), amount=rec.get("amount")))
+        # Bring any DB-promoted admins (is_admin=1) into the live ADMIN_EMAILS
+        # set BEFORE the loop below, which both relies on it being complete
+        # and (for a promoted admin missing a row entirely, e.g. restored
+        # from an older JSON snapshot without one) creates/approves them too.
+        from common.admin import sync_promoted_admins
+        promoted = [r.email for r in db_s.query(database.AllowedEmail).filter_by(is_admin=1).all()]
+        if promoted:
+            sync_promoted_admins(promoted)
         # Always ensure admins exist and are approved
         for adm in ADMIN_EMAILS:
             adm_row = db_s.query(database.AllowedEmail).filter_by(email=adm).first()
@@ -680,7 +692,8 @@ def admin_sync_to_github(request: Request, db: Session = Depends(get_db)):
                  "totp_secret": r.totp_secret, "totp_enabled": r.totp_enabled,
                  "backup_codes": r.backup_codes, "first_name": r.first_name,
                  "last_name": r.last_name, "password_hash": r.password_hash,
-                 "is_approved": r.is_approved if r.is_approved is not None else 1}
+                 "is_approved": r.is_approved if r.is_approved is not None else 1,
+                 "is_admin": r.is_admin if r.is_admin is not None else 0}
                 for r in rows]
 
     def _login_history_data(db_):
@@ -860,7 +873,8 @@ def list_allowed_emails(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=403, detail="Admin only")
     rows = db.query(database.AllowedEmail).order_by(database.AllowedEmail.added_at.desc()).all()
     return [{"email": r.email, "added_by": r.added_by, "added_at": r.added_at,
-             "is_approved": bool(r.is_approved)} for r in rows]
+             "is_approved": bool(r.is_approved),
+             "is_admin": is_admin_email(r.email)} for r in rows]
 
 @app.post("/api/allowed-emails")
 def add_allowed_email(body: AllowedEmailBody, request: Request, db: Session = Depends(get_db)):
@@ -931,6 +945,43 @@ def remove_allowed_email(email_addr: str, request: Request, db: Session = Depend
     from auth import _log_audit as _la
     _la(user, "email_removed", f"Removed allowed email: {email}")
     return {"status": "removed", "email": email}
+
+
+class SetAdminBody(BaseModel):
+    is_admin: bool
+
+@app.post("/api/allowed-emails/{email_addr}/set-admin")
+def set_admin_status(email_addr: str, body: SetAdminBody, request: Request, db: Session = Depends(get_db)):
+    """Promote or demote an already-approved user to admin. Only an existing
+    admin can do this. The three hardcoded seed admins (common/admin.py) can
+    never be demoted through here -- they're a permanent floor, not a DB row
+    toggle, so the app can never end up with zero admins."""
+    user = getattr(request.state, "user", None)
+    if not is_admin_email(user):
+        raise HTTPException(status_code=403, detail="Admin only")
+    email = email_addr.lower().strip()
+
+    from common.admin import _BASE_ADMIN_EMAILS, sync_promoted_admins, demote_admin
+    if email in _BASE_ADMIN_EMAILS:
+        raise HTTPException(status_code=400, detail="This email is a permanent admin and can't be changed.")
+
+    row = db.query(database.AllowedEmail).filter_by(email=email).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Email not found")
+    if not row.is_approved:
+        raise HTTPException(status_code=400, detail="Can't make a pending (unapproved) user an admin yet — approve them first.")
+
+    row.is_admin = 1 if body.is_admin else 0
+    db.commit()
+    if body.is_admin:
+        sync_promoted_admins([email])
+    else:
+        demote_admin(email)
+    _dump_allowed_emails(db)
+    from auth import _log_audit as _la
+    _la(user, "email_admin_promoted" if body.is_admin else "email_admin_demoted",
+        f"{'Promoted' if body.is_admin else 'Demoted'} {email} {'to' if body.is_admin else 'from'} admin")
+    return {"status": "ok", "email": email, "is_admin": bool(row.is_admin)}
 
 
 # ── Access Requests (public — no auth required) ───────────────────────────────

@@ -255,6 +255,7 @@ class AllowedEmail(Base):
     last_name     = Column(String, nullable=True)
     password_hash = Column(String, nullable=True)  # PBKDF2-SHA256: salt_hex:key_hex
     is_approved   = Column(Integer, default=1)      # 1=approved  0=pending admin approval
+    is_admin      = Column(Integer, default=0)      # 0=regular user  1=promoted admin (in addition to the hardcoded seed admins)
 
 
 class AccessRequest(Base):
@@ -327,6 +328,9 @@ def run_migrations():
         "ALTER TABLE allowed_emails ADD COLUMN password_hash TEXT",
         # Approval gate — DEFAULT 1 so existing users keep access; self-registered start at 0
         "ALTER TABLE allowed_emails ADD COLUMN is_approved INTEGER DEFAULT 1",
+        # Admin promotion — DEFAULT 0; the hardcoded seed admins in common/admin.py
+        # are unaffected either way, this only covers additionally-promoted users
+        "ALTER TABLE allowed_emails ADD COLUMN is_admin INTEGER DEFAULT 0",
         # Simulator moved from per-basket to per-user virtual portfolios
         "ALTER TABLE simulation_mods ADD COLUMN user_email TEXT",
         "ALTER TABLE simulation_sips ADD COLUMN user_email TEXT",
