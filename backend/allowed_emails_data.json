@@ -1,21 +1,8 @@
 [
   {
-    "email": "ajay.surya@niveshaay.com",
-    "added_by": "self-registered",
-    "added_at": "2026-09-21T05:53:20.274546",
-    "totp_secret": null,
-    "totp_enabled": 0,
-    "backup_codes": null,
-    "first_name": null,
-    "last_name": null,
-    "password_hash": null,
-    "is_approved": 1,
-    "is_admin": 1
-  },
-  {
-    "email": "jay.chaudhari@niveshaay.com",
+    "email": "nakshatra.rathi@niveshaay.com",
     "added_by": "system",
-    "added_at": "2026-09-19T11:24:44.743764",
+    "added_at": "2026-08-14T10:03:20.917581",
     "totp_secret": null,
     "totp_enabled": 0,
     "backup_codes": null,
@@ -28,7 +15,7 @@
   {
     "email": "nukul.madaan@niveshaay.com",
     "added_by": "system",
-    "added_at": "2026-09-19T11:24:44.743630",
+    "added_at": "2026-08-14T10:03:20.917581",
     "totp_secret": null,
     "totp_enabled": 0,
     "backup_codes": null,
@@ -39,9 +26,22 @@
     "is_admin": 1
   },
   {
-    "email": "nakshatra.rathi@niveshaay.com",
+    "email": "jay.chaudhari@niveshaay.com",
     "added_by": "system",
-    "added_at": "2026-09-19T11:24:44.743453",
+    "added_at": "2026-08-14T10:03:20.917581",
+    "totp_secret": null,
+    "totp_enabled": 0,
+    "backup_codes": null,
+    "first_name": null,
+    "last_name": null,
+    "password_hash": null,
+    "is_approved": 1,
+    "is_admin": 1
+  },
+  {
+    "email": "ajay.surya@niveshaay.com",
+    "added_by": "self-registered",
+    "added_at": "2026-09-21T05:53:20.274546",
     "totp_secret": null,
     "totp_enabled": 0,
     "backup_codes": null,
