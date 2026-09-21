@@ -22,10 +22,12 @@ import CorporateActionsPage  from './components/CorporateActionsPage.jsx';
 import AllClientsPage        from './components/AllClientsPage.jsx';
 import HoldingsUploadModal   from './components/HoldingsUploadModal.jsx';
 import DashboardView         from './components/DashboardView.jsx';
+import StockExposurePanel    from './components/StockExposurePanel.jsx';
 import WatchlistPage         from './components/WatchlistPage.jsx';
 import OverlapPage           from './components/OverlapPage.jsx';
 import RebalanceSummaryPage  from './components/RebalanceSummaryPage.jsx';
 import PerformanceSummaryPage from './components/PerformanceSummaryPage.jsx';
+import MonthOnMonthPage       from './components/MonthOnMonthPage.jsx';
 import { computeTenureReturn, getLatestIndexDate } from './utils/tenureReturn.js';
 
 // ── Formatters ───────────────────────────────────────────────────────────────
@@ -944,7 +946,7 @@ export default function App() {
   // IPO watchlist basket and are hidden for it -- fall back to Overview if the
   // user was on one of them when switching to (or starting on) that basket.
   useEffect(() => {
-    if (isIPO && (dashView === 'rebalance' || dashView === 'performance')) {
+    if (isIPO && (dashView === 'rebalance' || dashView === 'performance' || dashView === 'mom')) {
       setDashView('overview');
     }
   }, [isIPO, dashView]);
@@ -1037,6 +1039,9 @@ export default function App() {
             <i className="fa-solid fa-table" /> Holdings
             {loadProgress && <span className="dv-tab-badge">{loadProgress.loaded}/{loadProgress.total}</span>}
           </button>
+          <button className={`dv-tab${dashView === 'exposure' ? ' active' : ''}`} onClick={() => setDashView('exposure')}>
+            <i className="fa-solid fa-chart-simple" /> Stock Exposure
+          </button>
           <button className={`dv-tab${dashView === 'watchlist' ? ' active' : ''}`} onClick={() => setDashView('watchlist')}>
             <i className="fa-solid fa-binoculars" /> Watchlist
           </button>
@@ -1053,6 +1058,11 @@ export default function App() {
               <i className="fa-solid fa-magnifying-glass-chart" /> Performance Summary
             </button>
           )}
+          {!isIPO && (
+            <button className={`dv-tab${dashView === 'mom' ? ' active' : ''}`} onClick={() => setDashView('mom')}>
+              <i className="fa-solid fa-calendar-days" /> Month on Month Return
+            </button>
+          )}
         </div>
 
         {dashView === 'overview' ? (
@@ -1067,6 +1077,9 @@ export default function App() {
             onGoToBasket={handleBasketChange}
             basketOptions={basketOptions}
           />
+        ) : dashView === 'exposure' ? (
+          // Centralized, NOT basket-scoped: combined weightage across all baskets.
+          <StockExposurePanel />
         ) : dashView === 'watchlist' ? (
           // Centralized, NOT basket-scoped: same data regardless of which
           // basket is currently selected -- shared across every user/analyst.
@@ -1076,6 +1089,11 @@ export default function App() {
           <OverlapPage />
         ) : dashView === 'rebalance' ? (
           <RebalanceSummaryPage
+            basketKey={basketKey}
+            basketLabel={basketOptions.find(b => b.key === basketKey)?.label || basketKey}
+          />
+        ) : dashView === 'mom' ? (
+          <MonthOnMonthPage
             basketKey={basketKey}
             basketLabel={basketOptions.find(b => b.key === basketKey)?.label || basketKey}
           />

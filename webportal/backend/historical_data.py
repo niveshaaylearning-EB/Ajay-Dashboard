@@ -6,7 +6,10 @@ from datetime import datetime
 import openpyxl
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 
-from persistence import _load_historical_index, _save_historical_index, _require_admin
+from persistence import (
+    _load_historical_index, _save_historical_index, _require_admin,
+    _load_portfolios, _load_buy_price_data, BASKET_DISPLAY_NAMES,
+)
 
 router = APIRouter()
 
@@ -14,6 +17,42 @@ router = APIRouter()
 async def get_index_history():
     """Serve pre-computed historical index values for all baskets."""
     return _load_historical_index()
+
+
+@router.get("/api/stock-exposure")
+async def get_stock_exposure():
+    """Combined weightage of each stock across all baskets -- how concentrated
+    a single company's exposure is when every basket's allocation % is summed
+    together, plus how many baskets it shows up in at all. IPO_Recommendations
+    is a watchlist (every entry has allocation 0), so it naturally contributes
+    nothing and doesn't need special-casing."""
+    portfolios = _load_portfolios()
+    buy_price  = _load_buy_price_data()
+
+    exposure: dict = {}
+    for basket, stocks in portfolios.items():
+        label = BASKET_DISPLAY_NAMES.get(basket, basket)
+        bp_map = buy_price.get(basket, {})
+        for stock in stocks:
+            alloc = float(stock.get("allocation") or 0) * 100
+            if alloc <= 0:
+                continue
+            code = (stock.get("nseCode") or "").strip().upper()
+            if not code:
+                continue
+            name = (bp_map.get(code) or {}).get("securityName") or code
+            e = exposure.setdefault(code, {
+                "code": code, "stock_name": name,
+                "total_weight": 0.0, "basket_count": 0, "per_basket": {},
+            })
+            e["total_weight"] += alloc
+            e["basket_count"] += 1
+            e["per_basket"][label] = round(alloc, 2)
+
+    ranked = sorted(exposure.values(), key=lambda x: -x["total_weight"])
+    for e in ranked:
+        e["total_weight"] = round(e["total_weight"], 2)
+    return ranked
 
 
 @router.post("/api/daily-values")
