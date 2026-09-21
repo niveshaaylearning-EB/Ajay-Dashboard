@@ -624,6 +624,15 @@ app.include_router(_stocks_router)
 @app.api_route("/api/health", methods=["GET", "HEAD"])
 def health(): return {"status": "ok"}
 
+@app.get("/api/me")
+def get_me(request: Request):
+    # Lets the frontend learn a promoted admin's real status at runtime,
+    # since the browser's own hardcoded ADMIN_EMAILS list (utils/auth.js)
+    # only knows the permanent base admins and goes stale the moment
+    # someone is promoted via the DB without a fresh frontend deploy.
+    user = getattr(request.state, "user", None)
+    return {"email": user, "is_admin": is_admin_email(user)}
+
 from routers.historic import router as _historic_router
 app.include_router(_historic_router)
 

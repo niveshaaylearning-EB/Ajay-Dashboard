@@ -1,5 +1,5 @@
 """
-FastAPI backend for the Equity Basket Performance Tracker.
+FastAPI backend for Caskwook Capital.
 # v3 — history derived from buy/sell events
 
 Live data sources:

@@ -41,7 +41,7 @@ def generate_totp_qr_svg(email: str, secret: str) -> str:
     # Create the provisioning URI
     uri = pyotp.totp.TOTP(secret).provisioning_uri(
         name=email.strip().lower(),
-        issuer_name="Niveshaay Equity Basket Tracker"
+        issuer_name="Caskwook Capital"
     )
     
     # Generate SVG QR code using path-based factory (most compatible with browsers)
@@ -462,11 +462,11 @@ def send_email_otp(to_email: str, code: str):
             "https://api.brevo.com/v3/smtp/email",
             headers={"api-key": BREVO_API_KEY, "Content-Type": "application/json", "Accept": "application/json"},
             json={
-                "sender":      {"email": SMTP_FROM, "name": "Niveshaay Equity Basket Tracker"},
+                "sender":      {"email": SMTP_FROM, "name": "Caskwook Capital"},
                 "to":          [{"email": to_email}],
                 "subject":     f"NIA Login Code: {code}",
                 "textContent": (
-                    f"Hello,\n\nYour Niveshaay Equity Basket Tracker login code is:\n\n    {code}\n\n"
+                    f"Hello,\n\nYour Caskwook Capital login code is:\n\n    {code}\n\n"
                     f"This code expires in 10 minutes.\nIf you didn't request this, ignore this email.\n\n— NIA Tech Team"
                 ),
             },
@@ -478,7 +478,7 @@ def send_email_otp(to_email: str, code: str):
 
     body = (
         f"Hello,\n\n"
-        f"Your Niveshaay Equity Basket Tracker login code is:\n\n"
+        f"Your Caskwook Capital login code is:\n\n"
         f"    {code}\n\n"
         f"This code expires in 10 minutes.\n"
         f"If you didn't request this, ignore this email.\n\n"
@@ -943,7 +943,7 @@ def _send_email(to_email: str, subject: str, body: str):
         "https://api.brevo.com/v3/smtp/email",
         headers={"api-key": BREVO_API_KEY, "Content-Type": "application/json", "Accept": "application/json"},
         json={
-            "sender": {"email": SMTP_FROM, "name": "Niveshaay Equity Basket Tracker"},
+            "sender": {"email": SMTP_FROM, "name": "Caskwook Capital"},
             "to": [{"email": to_email}],
             "subject": subject,
             "textContent": body,
@@ -960,7 +960,7 @@ def _notify_admins_new_registration(first_name: str, last_name: str, email: str)
         f"A new user has registered and is waiting for your approval:\n\n"
         f"  Name : {first_name} {last_name}\n"
         f"  Email: {email}\n\n"
-        f"Log in to the Niveshaay Equity Basket Tracker and go to Approved Login Emails to approve or reject.\n\n"
+        f"Log in to the Caskwook Capital and go to Approved Login Emails to approve or reject.\n\n"
         f"— NIA Tech Team"
     )
     for admin in ADMIN_EMAILS:
@@ -974,9 +974,9 @@ def _notify_user_approved(email: str, first_name: str):
     try:
         _send_email(
             email,
-            "Your Niveshaay Equity Basket Tracker account has been approved",
+            "Your Caskwook Capital account has been approved",
             f"Hi {first_name},\n\n"
-            f"Your Niveshaay Equity Basket Tracker account has been approved. You can now log in.\n\n"
+            f"Your Caskwook Capital account has been approved. You can now log in.\n\n"
             f"— NIA Tech Team",
         )
     except Exception as e:
@@ -987,7 +987,7 @@ def _notify_user_rejected(email: str, first_name: str):
     try:
         _send_email(
             email,
-            "Niveshaay Equity Basket Tracker — registration not approved",
+            "Caskwook Capital — registration not approved",
             f"Hi {first_name},\n\n"
             f"Your registration request could not be approved at this time.\n"
             f"Please contact your NIA administrator if you think this is a mistake.\n\n"

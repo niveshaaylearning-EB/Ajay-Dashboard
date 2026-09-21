@@ -1,6 +1,6 @@
-# Niveshaay Equity Basket Tracker — Cloud Deployment Guide
+# Caskwook Capital — Cloud Deployment Guide
 
-This guide details how to configure, build, and deploy the Niveshaay Equity Basket Tracker application on cloud environments (e.g., Render, AWS, Heroku, Fly.io, or in a Docker container).
+This guide details how to configure, build, and deploy the Caskwook Capital application on cloud environments (e.g., Render, AWS, Heroku, Fly.io, or in a Docker container).
 
 ---
 

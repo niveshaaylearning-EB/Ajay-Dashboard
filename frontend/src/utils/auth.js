@@ -1,3 +1,5 @@
+import { API_BASE } from '../config.js';
+
 export const TOKEN_KEY   = 'nia_auth_token';
 export const REFRESH_KEY = 'nia_refresh_token';
 
@@ -43,16 +45,50 @@ export const getFirstName = () => {
   return part.charAt(0).toUpperCase() + part.slice(1);
 };
 
-// Single source of truth for the frontend's admin/edit allowlist — matches
-// backend/common/admin.py's ADMIN_EMAILS on the server side.
+// Permanent base admins — matches backend/common/admin.py's
+// _BASE_ADMIN_EMAILS. Anyone promoted later isn't in this static list; their
+// status is fetched from the server (below) since the browser has no other
+// way to learn about a promotion that happened after the page was built.
 export const ADMIN_EMAILS = new Set([
   'jay.chaudhari@niveshaay.com',
   'nukul.madaan@niveshaay.com',
   'nakshatra.rathi@niveshaay.com',
 ]);
 
+const PROMOTED_ADMIN_KEY = 'nia_promoted_admin';
+export const ADMIN_STATUS_CHANGE_EVENT = 'nia-admin-status-change';
+
 export const isAdmin = () => {
   const email = getEmail();
   if (!email) return false;
-  return ADMIN_EMAILS.has(email.toLowerCase().trim());
+  if (ADMIN_EMAILS.has(email.toLowerCase().trim())) return true;
+  return localStorage.getItem(PROMOTED_ADMIN_KEY) === email.toLowerCase().trim();
+};
+
+// Asks the backend whether the current user has been promoted to admin, and
+// caches the answer (keyed by email, so switching accounts on the same
+// browser can't leak one user's promotion into another's session). Fire
+// this on app mount / login so promoted admins see their real access without
+// waiting for a frontend redeploy.
+export const syncAdminStatus = async () => {
+  const email = getEmail();
+  if (!email) return;
+  try {
+    const res = await fetch(`${API_BASE}/me`, {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const before = isAdmin();
+    if (data.is_admin) {
+      localStorage.setItem(PROMOTED_ADMIN_KEY, email.toLowerCase().trim());
+    } else if (localStorage.getItem(PROMOTED_ADMIN_KEY) === email.toLowerCase().trim()) {
+      localStorage.removeItem(PROMOTED_ADMIN_KEY);
+    }
+    if (isAdmin() !== before) {
+      window.dispatchEvent(new Event(ADMIN_STATUS_CHANGE_EVENT));
+    }
+  } catch {
+    // Network hiccup -- keep whatever was cached, not worth surfacing.
+  }
 };

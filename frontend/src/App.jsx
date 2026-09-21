@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from 're
 import axios from 'axios';
 import { Sun, Moon } from 'lucide-react';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
-import { clearAllTokens, getEmail, isAdmin, getFirstName, isLoggedIn } from './utils/auth.js';
+import { clearAllTokens, getEmail, isAdmin, getFirstName, isLoggedIn, syncAdminStatus, ADMIN_STATUS_CHANGE_EVENT } from './utils/auth.js';
 import { getTheme, toggleTheme, THEME_CHANGE_EVENT } from './utils/theme.js';
 import { API_ROOT } from './config.js';
 
@@ -82,7 +82,7 @@ function Header() {
   return (
     <header className="main-header">
       <Link to="/" style={{ textDecoration: 'none' }}>
-        <h1 className="text-gradient" style={{ margin: 0, fontSize: '1.8rem' }}>Niveshaay Equity Basket Tracker</h1>
+        <h1 className="text-gradient" style={{ margin: 0, fontSize: '1.8rem' }}>Caskwook Capital</h1>
       </Link>
       <nav className="main-header-nav">
         <Link to="/" className="btn btn-secondary">Home</Link>
@@ -141,6 +141,19 @@ function Header() {
 }
 
 function App() {
+  // Learn a promoted admin's real status from the server on load, since the
+  // browser's hardcoded ADMIN_EMAILS list only knows the permanent base
+  // admins. Bumping this state re-renders the whole tree (Header + whatever
+  // route is mounted) once the promotion status comes back, so pages that
+  // gate features on isAdmin() pick it up without a manual refresh.
+  const [, bumpAdminStatus] = useState(0);
+  useEffect(() => {
+    if (isLoggedIn()) syncAdminStatus();
+    const onChange = () => bumpAdminStatus((n) => n + 1);
+    window.addEventListener(ADMIN_STATUS_CHANGE_EVENT, onChange);
+    return () => window.removeEventListener(ADMIN_STATUS_CHANGE_EVENT, onChange);
+  }, []);
+
   return (
     <BrowserRouter>
       <div className="container">

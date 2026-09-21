@@ -1,10 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { getEmail, getToken, ADMIN_EMAILS } from '../utils/auth.js';
+import { getEmail, getToken, isAdmin } from '../utils/auth.js';
 import { getTheme, setTheme, THEME_CHANGE_EVENT } from '../utils/theme.js';
 
-const EDIT_ALLOWED = ADMIN_EMAILS;
 const BAR_H = 44;
 
 const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -50,7 +49,7 @@ export default function ActualPortfolio() {
 
   const iframeTop = headerBottom + BAR_H;
   const email     = getEmail() || '';
-  const canEdit   = EDIT_ALLOWED.has(email);
+  const canEdit   = isAdmin();
   // Pass the auth token through the URL too, not just email/edit flags: in
   // local dev the iframe loads from a different origin (port 8001), so it
   // can't read the main app's localStorage token at all. Without this, admin
