@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Mail, LogIn, RefreshCw, KeyRound, UserPlus } from 'lucide-react';
-import { setToken, setRefreshToken } from '../utils/auth';
+import { setToken, setRefreshToken, syncAdminStatus } from '../utils/auth';
 import { API_ROOT as API } from '../config.js';
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
@@ -113,6 +113,11 @@ export default function LoginPage() {
       });
       setToken(res.data.token);
       if (res.data.refresh_token) setRefreshToken(res.data.refresh_token);
+      // Real admin status must be known BEFORE the next page mounts and reads
+      // isAdmin() -- App.jsx's own sync only runs on a fresh page load, which
+      // a client-side navigate() (below) never triggers, so a promoted admin
+      // logging in normally would otherwise never get it this session.
+      await syncAdminStatus();
       navigate('/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid or expired code. Please try again.');
