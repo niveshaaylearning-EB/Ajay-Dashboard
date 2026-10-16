@@ -4,18 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import RollbackButtons from './RollbackButtons.jsx';
 import ColumnFilter from './ColumnFilter.jsx';
-
-const ADMIN_EMAILS = ['jay.chaudhari@niveshaay.com', 'nukul.madaan@niveshaay.com', 'nakshatra.rathi@niveshaay.com'];
-const _getAdminState = () => {
-  try {
-    const t = getAuthToken();
-    if (!t) return { isAdmin: false };
-    const payload = JSON.parse(atob(t.split('.')[1]));
-    if (payload.exp && Date.now() > payload.exp * 1000) return { isAdmin: false };
-    const email = (payload.sub || '').toLowerCase().trim();
-    return { isAdmin: ADMIN_EMAILS.includes(email) };
-  } catch { return { isAdmin: false }; }
-};
+import { isAdmin as _getIsAdmin } from '../utils/adminState.js';
 
 function dateToTs(d) {
   try {
@@ -63,7 +52,7 @@ function SellTypeBadge({ type }) {
 }
 
 export default function PLStatementPage() {
-  const { isAdmin: userIsAdmin } = _getAdminState();
+  const userIsAdmin = _getIsAdmin();
   const [gainsData,         setGainsData]         = useState(null);
   const [loading,           setLoading]           = useState(true);
   const [error,             setError]             = useState('');

@@ -1,18 +1,9 @@
 import { API_BASE, getAuthToken } from '../api/base.js';
 import { fetchBaskets } from '../api/client.js';
 import { useState, useEffect, useCallback } from 'react';
+import { isAdmin as _getIsAdmin } from '../utils/adminState.js';
 
-const ADMIN_EMAILS = ['jay.chaudhari@niveshaay.com', 'nukul.madaan@niveshaay.com', 'nakshatra.rathi@niveshaay.com'];
-const _getAdminState = () => {
-  try {
-    const t = getAuthToken();
-    if (!t) return { email: null, isAdmin: false };
-    const payload = JSON.parse(atob(t.split('.')[1]));
-    if (payload.exp && Date.now() > payload.exp * 1000) return { email: null, isAdmin: false };
-    const email = (payload.sub || '').toLowerCase().trim();
-    return { email, isAdmin: ADMIN_EMAILS.includes(email) };
-  } catch { return { email: null, isAdmin: false }; }
-};
+const _getAdminState = () => ({ isAdmin: _getIsAdmin() });
 
 const STATUS_COLORS = {
   pending_review: '#fbbf24',

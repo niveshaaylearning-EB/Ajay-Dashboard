@@ -1,20 +1,9 @@
-import { API_BASE, getAuthToken } from '../api/base.js';
+import { API_BASE } from '../api/base.js';
 import { useState, useEffect, useMemo } from 'react';
 import DailyValuesPanel from './DailyValuesPanel.jsx';
 import RollbackButtons from './RollbackButtons.jsx';
 import ColumnFilter from './ColumnFilter.jsx';
-
-const ADMIN_EMAILS = ['jay.chaudhari@niveshaay.com', 'nukul.madaan@niveshaay.com', 'nakshatra.rathi@niveshaay.com'];
-const _getAdminState = () => {
-  try {
-    const t = getAuthToken();
-    if (!t) return { isAdmin: false };
-    const payload = JSON.parse(atob(t.split('.')[1]));
-    if (payload.exp && Date.now() > payload.exp * 1000) return { isAdmin: false };
-    const email = (payload.sub || '').toLowerCase().trim();
-    return { isAdmin: ADMIN_EMAILS.includes(email) };
-  } catch { return { isAdmin: false }; }
-};
+import { isAdmin as _getIsAdmin } from '../utils/adminState.js';
 
 const BASKET_ORDER = [
   'Mid_Small_Cap', 'Green_Energy', 'Make_in_India', 'Trends_Triology',
@@ -73,7 +62,7 @@ function getCrColVal(field, row) {
 }
 
 export default function CalculateReturnPage() {
-  const { isAdmin: userIsAdmin } = _getAdminState();
+  const userIsAdmin = _getIsAdmin();
   const [histData,     setHistData]     = useState(null);
   const [loading,      setLoading]      = useState(true);
   const [baseDate,     setBaseDate]     = useState('');

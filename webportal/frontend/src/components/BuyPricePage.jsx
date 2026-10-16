@@ -6,18 +6,7 @@ import RollbackButtons from './RollbackButtons.jsx';
 import ColumnFilter from './ColumnFilter.jsx';
 import RebalanceUploadModal from './RebalanceUploadModal.jsx';
 import HoldingsUploadModal from './HoldingsUploadModal.jsx';
-
-const ADMIN_EMAILS = ['jay.chaudhari@niveshaay.com', 'nukul.madaan@niveshaay.com', 'nakshatra.rathi@niveshaay.com'];
-const _getAdminState = () => {
-  try {
-    const t = getAuthToken();
-    if (!t) return { email: null, isAdmin: false };
-    const payload = JSON.parse(atob(t.split('.')[1]));
-    if (payload.exp && Date.now() > payload.exp * 1000) return { email: null, isAdmin: false };
-    const email = (payload.sub || '').toLowerCase().trim();
-    return { email, isAdmin: ADMIN_EMAILS.includes(email) };
-  } catch { return { email: null, isAdmin: false }; }
-};
+import { isAdmin as _getIsAdmin } from '../utils/adminState.js';
 
 const fmt = (v) => v == null ? '—' : '₹' + Number(v).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 const clr = (v) => v == null ? 'var(--text-secondary)' : v > 0 ? 'var(--accent-green)' : v < 0 ? 'var(--accent-red)' : 'var(--text-secondary)';
@@ -126,7 +115,7 @@ export default function BuyPricePage() {
   const [holdingsPreview,   setHoldingsPreview]   = useState(null);
   const [uploadingHoldings, setUploadingHoldings] = useState(false);
   const holdingsFileRef = useRef(null);
-  const { isAdmin: userIsAdmin } = _getAdminState();
+  const userIsAdmin = _getIsAdmin();
 
 
   useEffect(() => {

@@ -1,21 +1,9 @@
 import { useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
-import { getAuthToken } from '../api/base.js';
 import { addClient, renameClient, deleteClient, setClientCapital, fetchClientsSummary, fetchBasket, fetchLiveData } from '../api/client.js';
 import { calcAbsoluteReturns, calcHoldingDaysWithBuyDateFallback, calcPerformance, calcContribution } from '../App.jsx';
 import ConfirmModal from './ConfirmModal.jsx';
-
-const ADMIN_EMAILS = ['jay.chaudhari@niveshaay.com', 'nukul.madaan@niveshaay.com', 'nakshatra.rathi@niveshaay.com'];
-const _getAdminState = () => {
-  try {
-    const t = getAuthToken();
-    if (!t) return { isAdmin: false };
-    const payload = JSON.parse(atob(t.split('.')[1]));
-    if (payload.exp && Date.now() > payload.exp * 1000) return { isAdmin: false };
-    const email = (payload.sub || '').toLowerCase().trim();
-    return { isAdmin: ADMIN_EMAILS.includes(email) };
-  } catch { return { isAdmin: false }; }
-};
+import { isAdmin as _getIsAdmin } from '../utils/adminState.js';
 
 const fmtRupee = (v) => v == null ? '—' : '₹' + Number(v).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 const fmtPct   = (v) => v == null ? '—' : (v * 100).toFixed(2) + '%';
@@ -37,7 +25,7 @@ function cmpStatusLabel(cmp, targetPrice, stopLoss) {
 const pctColor = (v) => v == null ? 'var(--text-secondary)' : v > 0 ? 'var(--accent-green)' : v < 0 ? 'var(--accent-red)' : 'var(--text-secondary)';
 
 export default function AllClientsPage() {
-  const { isAdmin: userIsAdmin } = _getAdminState();
+  const userIsAdmin = _getIsAdmin();
   const [rows,        setRows]        = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [searchTerm,   setSearchTerm]   = useState('');

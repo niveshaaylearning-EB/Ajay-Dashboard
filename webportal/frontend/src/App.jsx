@@ -1,4 +1,5 @@
 import { API_BASE, getAuthToken } from './api/base.js';
+import { READ_ONLY } from './utils/adminState.js';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import './App.css';
 import { fetchBasket, fetchBaskets, fetchLiveData, fetchLiveStock, saveBasket, fetchBasketStockMap, fetchBasketWeightMap, fetchPerformanceBatch, fetchOhlcLookup, fetchClientsSummary, setClientCapital } from './api/client.js';
@@ -221,11 +222,6 @@ const mergeRowLive = (row, live) => {
 };
 
 const MAX_HISTORY = 15;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Read edit permission from URL param set by the main app
-const _qp = new URLSearchParams(window.location.search);
-const READ_ONLY = _qp.get('edit') === '0';
 
 export default function App() {
   const _path = window.location.pathname.replace(/^\/wp/, '') || '/';
