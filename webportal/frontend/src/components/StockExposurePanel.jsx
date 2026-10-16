@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { API_BASE } from '../api/base.js';
+import { formatRupee } from '../App.jsx';
 
 // Centralized, NOT basket-scoped: same data regardless of which basket is
 // currently selected -- combined weightage of each stock summed across every
@@ -25,7 +26,7 @@ export default function StockExposurePanel() {
       <div style={{ marginBottom: '14px' }}>
         <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Stock Exposure Across Baskets</h3>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: '4px 0 0' }}>
-          Combined weightage of each company, summed across every basket it's held in — click a card for the breakdown
+          Combined weightage, total invested value, and % of total AUM across every basket — click a card for the per-basket breakdown
         </p>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: '12px' }}>
@@ -59,6 +60,18 @@ export default function StockExposurePanel() {
                 <span style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--accent-blue)' }}>{e.total_weight.toFixed(2)}%</span>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', background: 'var(--icard-badge-bg)', borderRadius: '10px', padding: '2px 8px' }}>
                   {e.basket_count} basket{e.basket_count > 1 ? 's' : ''}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--icard-divider)' }}>
+                <span
+                  style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}
+                  title={e.has_unknown_capital ? 'One or more holders of this stock have no Total Capital set, so this is a floor, not the exact total.' : undefined}
+                >
+                  {formatRupee(e.total_value)}{e.has_unknown_capital ? '+' : ''}
+                </span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                  {e.pct_of_total_aum != null ? `${e.pct_of_total_aum.toFixed(2)}% of total AUM` : '—'}
                 </span>
               </div>
 

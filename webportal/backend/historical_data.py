@@ -9,6 +9,7 @@ from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from persistence import (
     _load_historical_index, _save_historical_index, _require_admin,
     _load_portfolios, _load_buy_price_data, BASKET_DISPLAY_NAMES,
+    _load_client_capital,
 )
 
 router = APIRouter()
@@ -28,14 +29,27 @@ async def get_stock_exposure():
     nothing and doesn't need special-casing. LIQUIDCASE is excluded too -- it's
     the synthetic cash-equivalent row persistence.py auto-tops-up a basket's
     unallocated remainder into, not a real stock position, so it has no
-    business in a cross-client stock-concentration view."""
-    portfolios = _load_portfolios()
-    buy_price  = _load_buy_price_data()
+    business in a cross-client stock-concentration view.
+
+    Also computes each stock's combined rupee value (allocation % x that
+    basket's total capital, summed across every basket holding it) and what
+    % that is of EVERY client's capital combined -- a stock's total_weight
+    (sum of per-basket allocation %s) says nothing about real concentration
+    when clients have very different capital sizes; a stock at 50% in a 10L
+    account and 5% in a 1Cr account shouldn't look similarly "exposed"."""
+    portfolios  = _load_portfolios()
+    buy_price   = _load_buy_price_data()
+    capital_map = _load_client_capital()
+
+    total_aum = sum(v for v in capital_map.values() if v)
 
     exposure: dict = {}
     for basket, stocks in portfolios.items():
-        label = BASKET_DISPLAY_NAMES.get(basket, basket)
+        if basket not in BASKET_DISPLAY_NAMES:
+            continue  # skips "{basket}_sold" -- not a current holding list
+        label = BASKET_DISPLAY_NAMES[basket]
         bp_map = buy_price.get(basket, {})
+        basket_capital = capital_map.get(basket)
         for stock in stocks:
             alloc = float(stock.get("allocation") or 0) * 100
             if alloc <= 0:
@@ -47,14 +61,23 @@ async def get_stock_exposure():
             e = exposure.setdefault(code, {
                 "code": code, "stock_name": name,
                 "total_weight": 0.0, "basket_count": 0, "per_basket": {},
+                "total_value": 0.0, "has_unknown_capital": False,
             })
             e["total_weight"] += alloc
             e["basket_count"] += 1
             e["per_basket"][label] = round(alloc, 2)
+            if basket_capital:
+                e["total_value"] += basket_capital * (alloc / 100)
+            else:
+                # This holder's capital isn't set, so total_value below is a
+                # floor, not the true total -- flagged so the UI can say so.
+                e["has_unknown_capital"] = True
 
     ranked = sorted(exposure.values(), key=lambda x: -x["total_weight"])
     for e in ranked:
         e["total_weight"] = round(e["total_weight"], 2)
+        e["total_value"]  = round(e["total_value"], 2)
+        e["pct_of_total_aum"] = round((e["total_value"] / total_aum) * 100, 2) if total_aum else None
     return ranked
 
 
