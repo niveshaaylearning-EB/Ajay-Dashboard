@@ -28,10 +28,74 @@
       "buyPrice": 100.0
     }
   ],
-  "Nukul_Madaan_sold": [],
   "Ajay_Surya": [],
-  "Ajay_Surya_sold": [],
-  "Jay_Chaudhari_sold": [],
   "Maitri": [],
-  "Arjun_1": []
+  "Arjun_1": [],
+  "Lalit_Daga": [
+    {
+      "nseCode": "SBCL",
+      "allocation": 0.10315709999999999,
+      "buyPrice": 1146.19
+    },
+    {
+      "nseCode": "LIQUIDCASE",
+      "allocation": 0.18983998,
+      "buyPrice": 100
+    },
+    {
+      "nseCode": "NEOGEN CHEMICALS",
+      "allocation": 0.07790526,
+      "buyPrice": 2164.03
+    },
+    {
+      "nseCode": "XPROINDIA",
+      "allocation": 0.09627395,
+      "buyPrice": 1273.46
+    },
+    {
+      "nseCode": "HLEGLAS",
+      "allocation": 0.08084927,
+      "buyPrice": 414.61
+    },
+    {
+      "nseCode": "STEAMHOUSE",
+      "allocation": 0.07370088,
+      "buyPrice": 101.8
+    },
+    {
+      "nseCode": "E2E",
+      "allocation": 0.07364476,
+      "buyPrice": 618.86
+    },
+    {
+      "nseCode": "JYOTICNC",
+      "allocation": 0.07059636,
+      "buyPrice": 1023.14
+    },
+    {
+      "nseCode": "SAMBHV",
+      "allocation": 0.06378481,
+      "buyPrice": 159.06
+    },
+    {
+      "nseCode": "HBLENGINE",
+      "allocation": 0.05005308,
+      "buyPrice": 758.38
+    },
+    {
+      "nseCode": "SMSPHARMA",
+      "allocation": 0.042890889999999994,
+      "buyPrice": 473.93
+    },
+    {
+      "nseCode": "KABRAEXTRU",
+      "allocation": 0.0339373,
+      "buyPrice": 831.6
+    },
+    {
+      "nseCode": "AARTIPHARM",
+      "allocation": 0.07730348,
+      "buyPrice": 954.3
+    }
+  ]
 }

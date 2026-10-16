@@ -3,6 +3,30 @@
     "user_email": "jay.chaudhari@niveshaay.com",
     "event_type": "otp_requested",
     "details": "Login OTP requested",
+    "created_at": "2026-10-16T06:28:00.806078",
+    "ip_address": "10.11.0.26",
+    "location": null
+  },
+  {
+    "user_email": "ajay.surya@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-10-16T05:25:08.808266",
+    "ip_address": "10.11.0.26",
+    "location": null
+  },
+  {
+    "user_email": "ajay.surya@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-10-15T06:55:41.580468",
+    "ip_address": "10.11.0.26",
+    "location": null
+  },
+  {
+    "user_email": "jay.chaudhari@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
     "created_at": "2026-09-02T10:56:10.417002",
     "ip_address": "127.0.0.1",
     "location": null
