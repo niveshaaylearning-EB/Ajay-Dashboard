@@ -1,4 +1,5 @@
 import { formatPercent, getColorClass } from '../App.jsx';
+import { displayNseCode } from '../utils/stockDisplay.js';
 
 function InsightCard({ title, subtitle, items, valueKey, accent }) {
   if (!items.length) return null;
@@ -20,7 +21,7 @@ function InsightCard({ title, subtitle, items, valueKey, accent }) {
       {/* Featured #1 — shown large like image 2 */}
       <div className="icard-featured">
         <span className={`icard-featured-val ${topCls}`}>{formatPercent(topVal)}</span>
-        <span className="icard-featured-stock">{top.nseCode}</span>
+        <span className="icard-featured-stock">{displayNseCode(top.nseCode)}</span>
       </div>
 
       {/* Remaining 4 items */}
@@ -30,7 +31,7 @@ function InsightCard({ title, subtitle, items, valueKey, accent }) {
           return (
             <div key={item.nseCode + i} className="icard-rest-row">
               <span className="icard-rest-rank">{i + 2}</span>
-              <span className="icard-rest-name">{item.nseCode}</span>
+              <span className="icard-rest-name">{displayNseCode(item.nseCode)}</span>
               <span className={`icard-rest-val ${getColorClass(val)}`}>{formatPercent(val)}</span>
             </div>
           );

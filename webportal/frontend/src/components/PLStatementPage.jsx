@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx';
 import RollbackButtons from './RollbackButtons.jsx';
 import ColumnFilter from './ColumnFilter.jsx';
 import { isAdmin as _getIsAdmin } from '../utils/adminState.js';
+import { displayNseCode } from '../utils/stockDisplay.js';
 
 function dateToTs(d) {
   try {
@@ -24,7 +25,7 @@ const EMPTY_FILTERS = { nse: '', name: '', sellDate: '', sellType: 'All', buyDat
 
 function getPLColVal(field, row) {
   switch (field) {
-    case 'nseCode':       return row.nseCode || '';
+    case 'nseCode':       return displayNseCode(row.nseCode) || '';
     case 'securityName':  return row.securityName || '';
     case 'sellDate':      return row.sellDate || '';
     case 'sellType':      return row.sellType || '';
@@ -320,7 +321,7 @@ export default function PLStatementPage() {
   const exportXlsx = () => {
     const header = ['NSE Code','Security Name','Sell Date','Sell Type','Weight Sold (%)','Buy Date (FIFO)','Selling Price (₹)','Avg Buying Price (₹)','Gain / Loss (%)'];
     const data = displayRows.map(r => [
-      r.nseCode, r.securityName, r.sellDate, r.sellType || '',
+      displayNseCode(r.nseCode), r.securityName, r.sellDate, r.sellType || '',
       r.sellWeight, r.buyDate,
       r.sellPrice != null ? r.sellPrice : '',
       r.buyPrice  != null ? r.buyPrice  : '',
@@ -529,7 +530,7 @@ export default function PLStatementPage() {
                     <td className="pl-nse-code">
                       {row._custom ? (
                         <input defaultValue={row.nseCode} onBlur={e => setExtraRows(prev => prev.map(r => r._key === row._key ? { ...r, nseCode: e.target.value.toUpperCase() } : r))} style={cellInput} placeholder="TICKER" />
-                      ) : isFirstStock ? row.nseCode : ''}
+                      ) : isFirstStock ? displayNseCode(row.nseCode) : ''}
                     </td>
                     {/* Security Name */}
                     <td className="pl-sec-name">

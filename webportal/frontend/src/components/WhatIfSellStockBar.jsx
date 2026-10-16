@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { formatRupee, formatPercent, getColorClass } from '../App.jsx';
 import { EMPTY_SLOT, computeWhatIf, toIsoDate, fromIsoDate, applySellToSlot, undoSoldEntry } from '../whatIfCalc.js';
 import { fetchOhlcLookup } from '../api/client.js';
+import { displayNseCode } from '../utils/stockDisplay.js';
 
 // Mirrors WhatIfAddStockBar.jsx, but for the opposite action: simulate fully
 // or partially selling an EXISTING real holding, entirely in-memory, never
@@ -149,7 +150,7 @@ export default function WhatIfSellStockBar({ basketKey, rows, simOverlay, setSim
         <div style={{ marginBottom: '0.5rem' }}>
           {sold.map(s => (
             <div key={s.id} className="whatif-added-row">
-              <span style={{ fontWeight: 700 }}>{s.nseCode}</span>
+              <span style={{ fontWeight: 700 }}>{displayNseCode(s.nseCode)}</span>
               <span className="sit-label">
                 {s.full ? 'fully sold' : `${s.weightSold.toFixed(2)}% sold`} &middot; {s.sellDate} @ {formatRupee(s.sellPrice)}
                 {s.gainPct != null && (
@@ -186,7 +187,7 @@ export default function WhatIfSellStockBar({ basketKey, rows, simOverlay, setSim
               <select value={nseCode} onChange={e => handleCodeChange(e.target.value)} style={{ width: '100%' }}>
                 <option value="">Select a stock…</option>
                 {eligible.map(s => (
-                  <option key={s.nseCode} value={s.nseCode}>{s.nseCode} — {s.allocationPct.toFixed(2)}% held</option>
+                  <option key={s.nseCode} value={s.nseCode}>{displayNseCode(s.nseCode)} — {s.allocationPct.toFixed(2)}% held</option>
                 ))}
               </select>
 

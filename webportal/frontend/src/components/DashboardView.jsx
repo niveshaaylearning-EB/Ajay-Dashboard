@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatPercent, formatRupee, getColorClass } from '../App.jsx';
+import { displayNseCode } from '../utils/stockDisplay.js';
 
 const PIE_COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899','#84cc16','#14b8a6','#a78bfa','#34d399'];
 
@@ -20,7 +21,7 @@ function AllocationDonut({ rows }) {
   const data = useMemo(() => rows
     .filter(r => r.nseCode && r.allocation > 0)
     .sort((a, b) => b.allocation - a.allocation)
-    .map(r => ({ name: r.nseCode, value: parseFloat((r.allocation * 100).toFixed(2)) }))
+    .map(r => ({ name: displayNseCode(r.nseCode), value: parseFloat((r.allocation * 100).toFixed(2)) }))
   , [rows]);
 
   const totalAlloc = data.reduce((s, d) => s + d.value, 0);
@@ -92,7 +93,7 @@ function TopHoldingsPanel({ rows }) {
         <tbody>
           {top.map(r => (
             <tr key={r.nseCode}>
-              <td className="dv-stock-name">{r.nseCode}</td>
+              <td className="dv-stock-name">{displayNseCode(r.nseCode)}</td>
               <td>{r.allocation != null ? (r.allocation * 100).toFixed(2) + '%' : '-'}</td>
               <td>{r.cmp != null ? '₹' + r.cmp.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : '-'}</td>
               <td className={getColorClass(r.performance)}>{r.performance != null ? (r.performance * 100).toFixed(2) + '%' : '-'}</td>
@@ -119,7 +120,7 @@ function BarListPanel({ title, items, valueKey, colorKey, subtitle }) {
           return (
             <div key={item.nseCode + i} className="dv-bar-row">
               <span className="dv-bar-rank">{i + 1}</span>
-              <span className="dv-bar-name">{item.nseCode}</span>
+              <span className="dv-bar-name">{displayNseCode(item.nseCode)}</span>
               <div className="dv-bar-track">
                 <div className={`dv-bar dv-bar--${cls}`} style={{ width: pct + '%' }} />
               </div>
@@ -140,10 +141,10 @@ function KeyInsightsPanel({ rows }) {
   const largestAlloc = [...rows.filter(r => r.allocation > 0)].sort((a, b) => b.allocation - a.allocation)[0];
 
   const items = [
-    { label: 'Top Gainer',          stock: topGainer?.nseCode,    value: formatPercent(topGainer?.performance),    cls: 'positive', icon: 'fa-arrow-trend-up' },
-    { label: 'Top Loser',           stock: topLoser?.nseCode,     value: formatPercent(topLoser?.performance),     cls: 'negative', icon: 'fa-arrow-trend-down' },
-    { label: 'Highest Contribution',stock: topContrib?.nseCode,   value: formatPercent(topContrib?.contribution),  cls: 'positive', icon: 'fa-chart-line' },
-    { label: 'Largest Allocation',  stock: largestAlloc?.nseCode, value: largestAlloc ? (largestAlloc.allocation * 100).toFixed(2) + '%' : '-', cls: 'neutral', icon: 'fa-weight-hanging' },
+    { label: 'Top Gainer',          stock: displayNseCode(topGainer?.nseCode),    value: formatPercent(topGainer?.performance),    cls: 'positive', icon: 'fa-arrow-trend-up' },
+    { label: 'Top Loser',           stock: displayNseCode(topLoser?.nseCode),     value: formatPercent(topLoser?.performance),     cls: 'negative', icon: 'fa-arrow-trend-down' },
+    { label: 'Highest Contribution',stock: displayNseCode(topContrib?.nseCode),   value: formatPercent(topContrib?.contribution),  cls: 'positive', icon: 'fa-chart-line' },
+    { label: 'Largest Allocation',  stock: displayNseCode(largestAlloc?.nseCode), value: largestAlloc ? (largestAlloc.allocation * 100).toFixed(2) + '%' : '-', cls: 'neutral', icon: 'fa-weight-hanging' },
   ];
 
   return (

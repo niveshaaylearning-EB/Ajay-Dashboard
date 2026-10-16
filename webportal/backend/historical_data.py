@@ -25,7 +25,10 @@ async def get_stock_exposure():
     a single company's exposure is when every basket's allocation % is summed
     together, plus how many baskets it shows up in at all. IPO_Recommendations
     is a watchlist (every entry has allocation 0), so it naturally contributes
-    nothing and doesn't need special-casing."""
+    nothing and doesn't need special-casing. LIQUIDCASE is excluded too -- it's
+    the synthetic cash-equivalent row persistence.py auto-tops-up a basket's
+    unallocated remainder into, not a real stock position, so it has no
+    business in a cross-client stock-concentration view."""
     portfolios = _load_portfolios()
     buy_price  = _load_buy_price_data()
 
@@ -38,7 +41,7 @@ async def get_stock_exposure():
             if alloc <= 0:
                 continue
             code = (stock.get("nseCode") or "").strip().upper()
-            if not code:
+            if not code or code == "LIQUIDCASE":
                 continue
             name = (bp_map.get(code) or {}).get("securityName") or code
             e = exposure.setdefault(code, {

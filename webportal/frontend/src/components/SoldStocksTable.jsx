@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { formatPercent, getColorClass } from '../App.jsx';
+import { displayNseCode } from '../utils/stockDisplay.js';
 
 function extractYear(dateStr) {
   if (!dateStr) return null;
@@ -44,7 +45,7 @@ function SoldRow({ row, idx, onBuyChange, onSellChange, onRemove }) {
 
   return (
     <tr>
-      <td className="nse-code">{row.nseCode || '—'}</td>
+      <td className="nse-code">{displayNseCode(row.nseCode) || '—'}</td>
 
       <td style={{ color: 'var(--text-primary)', fontSize: '0.83rem' }}>
         {row.securityName || '—'}

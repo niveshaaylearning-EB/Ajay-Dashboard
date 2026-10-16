@@ -7,13 +7,14 @@ import ColumnFilter from './ColumnFilter.jsx';
 import RebalanceUploadModal from './RebalanceUploadModal.jsx';
 import HoldingsUploadModal from './HoldingsUploadModal.jsx';
 import { isAdmin as _getIsAdmin } from '../utils/adminState.js';
+import { displayNseCode } from '../utils/stockDisplay.js';
 
 const fmt = (v) => v == null ? '—' : '₹' + Number(v).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 const clr = (v) => v == null ? 'var(--text-secondary)' : v > 0 ? 'var(--accent-green)' : v < 0 ? 'var(--accent-red)' : 'var(--text-secondary)';
 
 function getBpColVal(field, row) {
   switch (field) {
-    case 'nseCode':       return row.nseCode || '';
+    case 'nseCode':       return displayNseCode(row.nseCode) || '';
     case 'securityName':  return row.securityName || '';
     case 'segment':       return row.segment || '';
     case 'allocation':    return row.allocation !== '' ? String(row.allocation) : '';
@@ -329,7 +330,7 @@ export default function BuyPricePage() {
         ? +((cmp - r.buyPrice) / r.buyPrice * 100).toFixed(2)
         : '';
       return [
-        r.nseCode,
+        displayNseCode(r.nseCode),
         r.securityName || '',
         r.segment || '',
         r.allocation !== '' ? parseFloat(r.allocation) || '' : '',
@@ -354,11 +355,11 @@ export default function BuyPricePage() {
         const status = s.closed ? 'Closed' : 'Active';
         for (const line of s.buys) {
           const parts = line.split(' * ');
-          eventsData.push([row.nseCode, row.securityName || '', cycleLabel, status, 'Buy', parts[0]?.trim() || '', parseFloat(parts[1]) || '']);
+          eventsData.push([displayNseCode(row.nseCode), row.securityName || '', cycleLabel, status, 'Buy', parts[0]?.trim() || '', parseFloat(parts[1]) || '']);
         }
         for (const line of s.sells) {
           const parts = line.split(' * ');
-          eventsData.push([row.nseCode, row.securityName || '', cycleLabel, status, 'Sell', parts[0]?.trim() || '', parseFloat(parts[1]) || '']);
+          eventsData.push([displayNseCode(row.nseCode), row.securityName || '', cycleLabel, status, 'Sell', parts[0]?.trim() || '', parseFloat(parts[1]) || '']);
         }
       }
     }
@@ -588,7 +589,7 @@ export default function BuyPricePage() {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem' }}>
             <div>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>{historyRow.nseCode}</span>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>{displayNseCode(historyRow.nseCode)}</span>
               <span style={{ color: 'var(--text-secondary)', marginLeft: '0.6rem', fontSize: '0.88rem' }}>{historyRow.securityName}</span>
             </div>
             <button onClick={() => setHistoryRow(null)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.3rem', lineHeight: 1, padding: 0 }}>&times;</button>

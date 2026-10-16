@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchRebalanceSummary } from '../api/client.js';
+import { displayNseCode } from '../utils/stockDisplay.js';
 
 const fmtWt = (v) => v == null ? '' : (Math.round(v * 100) / 100) + '%';
 
@@ -23,7 +24,7 @@ function DayCard({ entry }) {
                 background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)',
                 color: 'var(--accent-green)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.76rem', fontWeight: 600,
               }}>
-                {s.nseCode} {s.weight != null ? `(${fmtWt(s.weight)})` : ''}
+                {displayNseCode(s.nseCode)} {s.weight != null ? `(${fmtWt(s.weight)})` : ''}
               </span>
             ))}
           </div>
@@ -39,7 +40,7 @@ function DayCard({ entry }) {
                 background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
                 color: 'var(--accent-red)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.76rem', fontWeight: 600,
               }}>
-                {s.nseCode} {s.weight != null ? `(was ${fmtWt(s.weight)})` : ''}
+                {displayNseCode(s.nseCode)} {s.weight != null ? `(was ${fmtWt(s.weight)})` : ''}
               </span>
             ))}
           </div>
@@ -55,7 +56,7 @@ function DayCard({ entry }) {
                 background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.3)',
                 color: 'var(--text-secondary)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.76rem',
               }}>
-                <strong style={{ color: 'var(--text-primary)' }}>{s.nseCode}</strong>{' '}
+                <strong style={{ color: 'var(--text-primary)' }}>{displayNseCode(s.nseCode)}</strong>{' '}
                 {fmtWt(s.from)} → {fmtWt(s.to)}
               </span>
             ))}

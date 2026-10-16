@@ -4,6 +4,7 @@ import { addClient, renameClient, deleteClient, setClientCapital, fetchClientsSu
 import { calcAbsoluteReturns, calcHoldingDaysWithBuyDateFallback, calcPerformance, calcContribution } from '../App.jsx';
 import ConfirmModal from './ConfirmModal.jsx';
 import { isAdmin as _getIsAdmin } from '../utils/adminState.js';
+import { displayNseCode } from '../utils/stockDisplay.js';
 
 const fmtRupee = (v) => v == null ? '—' : '₹' + Number(v).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 const fmtPct   = (v) => v == null ? '—' : (v * 100).toFixed(2) + '%';
@@ -181,7 +182,7 @@ export default function AllClientsPage() {
           const contribution1M = calcContribution(s.allocation, performance1M);
           const holdingDays  = calcHoldingDaysWithBuyDateFallback(det.buyEvents, det.sellEvents, det.buyDate);
           holdingsRows.push([
-            client.label, client.clientId || '', s.nseCode, det.securityName || '', det.segment || '',
+            client.label, client.clientId || '', displayNseCode(s.nseCode), det.securityName || '', det.segment || '',
             s.allocation != null ? +(s.allocation * 100).toFixed(2) : '',
             (client.totalCapital != null && s.allocation != null) ? Math.round(s.allocation * client.totalCapital) : '',
             det.buyDate || '', s.buyPrice ?? '', cmp ?? '',

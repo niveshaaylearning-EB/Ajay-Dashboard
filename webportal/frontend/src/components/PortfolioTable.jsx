@@ -4,6 +4,7 @@ import NseAutocomplete from './NseAutocomplete.jsx';
 import ColumnFilter from './ColumnFilter.jsx';
 import DatePickerPopup from './DatePickerPopup.jsx';
 import { toIsoDate, fromIsoDate } from '../whatIfCalc.js';
+import { displayNseCode } from '../utils/stockDisplay.js';
 
 // Formula and PE Ratio removed per user request
 // 'Performance' is a stable header key internally (SORT_KEY/getColVal/column
@@ -93,7 +94,7 @@ const OHLC_LABELS = new Set(['Open 1M', 'Close 1M', 'High 1M', 'Low 1M', 'Market
 
 function getColVal(field, row) {
   switch (field) {
-    case 'nseCode':         return row.nseCode || '';
+    case 'nseCode':         return displayNseCode(row.nseCode) || '';
     case 'allocation':      return row.allocation != null ? (row.allocation * 100).toFixed(2) + '%' : '';
     case 'performance':     return row.performance != null ? (row.performance * 100).toFixed(2) + '%' : '';
     case 'tenurePerformance': return row.tenurePerformance != null ? (row.tenurePerformance * 100).toFixed(2) + '%' : '';
@@ -181,7 +182,7 @@ function DataRow({
       {/* NSE Code */}
       <td className="nse-code editable-nse pt-sticky-col" style={{ position: 'sticky', left: 0, zIndex: 1, overflow: 'visible' }}>
         {row._simAdded ? (
-          <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{row.nseCode}</span>
+          <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{displayNseCode(row.nseCode)}</span>
         ) : (
           <>
             {!isIPO && (

@@ -155,11 +155,18 @@ def _reconcile_liquidcase(data: dict) -> dict:
     portfolio -- every stock in it is intentionally seeded at allocation: 0
     (see App.jsx's isIPO equal-weight display), so this rule would otherwise
     see ~0% "allocated" on every save and dump ~100% into a LIQUIDCASE row
-    that has no business being there."""
+    that has no business being there.
+
+    Also runs for a brand-new client with NO holdings at all (empty list) --
+    total is then 0 and residual is 1.0, so it correctly shows up as 100%
+    cash instead of an empty portfolio with no indication where the client's
+    capital actually sits. `_sold` lists are skipped explicitly since they're
+    also plain (often empty) lists under the same dict, but aren't a basket's
+    current holdings at all."""
     for basket_key, holdings in data.items():
-        if basket_key.startswith("IPO_Recommendations"):
+        if basket_key.startswith("IPO_Recommendations") or basket_key.endswith("_sold"):
             continue
-        if not isinstance(holdings, list) or not holdings:
+        if not isinstance(holdings, list):
             continue
         total = sum(h.get("allocation", 0) or 0 for h in holdings)
         residual = 1.0 - total

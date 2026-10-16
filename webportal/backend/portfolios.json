@@ -28,9 +28,27 @@
       "buyPrice": 100.0
     }
   ],
-  "Ajay_Surya": [],
-  "Maitri": [],
-  "Arjun_1": [],
+  "Ajay_Surya": [
+    {
+      "nseCode": "LIQUIDCASE",
+      "allocation": 1.0,
+      "buyPrice": 100.0
+    }
+  ],
+  "Maitri": [
+    {
+      "nseCode": "LIQUIDCASE",
+      "allocation": 1.0,
+      "buyPrice": 100.0
+    }
+  ],
+  "Arjun_1": [
+    {
+      "nseCode": "LIQUIDCASE",
+      "allocation": 1.0,
+      "buyPrice": 100.0
+    }
+  ],
   "Lalit_Daga": [
     {
       "nseCode": "SBCL",

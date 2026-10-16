@@ -3,6 +3,7 @@ import { formatRupee } from '../App.jsx';
 import { EMPTY_SLOT, computeWhatIf, toIsoDate, fromIsoDate, applySellToSlot } from '../whatIfCalc.js';
 import { fetchLiveStock, fetchOhlcLookup } from '../api/client.js';
 import NseAutocomplete from './NseAutocomplete.jsx';
+import { displayNseCode } from '../utils/stockDisplay.js';
 
 // Renders at the end of the real holdings table. Lets anyone (not just
 // admins) layer hypothetical stocks onto the what-if simulation -- entirely
@@ -214,7 +215,7 @@ export default function WhatIfAddStockBar({ basketKey, rows, nseSymbols, simOver
         <div style={{ marginBottom: '0.5rem' }}>
           {slot.added.map(a => (
             <div key={a.id} className="whatif-added-row">
-              <span style={{ fontWeight: 700 }}>{a.nseCode}</span>
+              <span style={{ fontWeight: 700 }}>{displayNseCode(a.nseCode)}</span>
               <span className="sit-label">{a.weight}% &middot; bought {a.buyDate} @ {formatRupee(a.ohlc)}</span>
               <button className="whatif-close" onClick={() => removeAdded(a.id)}>&times;</button>
             </div>
@@ -277,7 +278,7 @@ export default function WhatIfAddStockBar({ basketKey, rows, nseSymbols, simOver
                   <select value={makeRoomCode} onChange={e => { setMakeRoomCode(e.target.value); setReduceBy(''); }} style={{ width: '100%' }}>
                     <option value="">Select a stock…</option>
                     {eligibleForRoom.map(s => (
-                      <option key={s.nseCode} value={s.nseCode}>{s.nseCode} — {s.allocationPct.toFixed(2)}%</option>
+                      <option key={s.nseCode} value={s.nseCode}>{displayNseCode(s.nseCode)} — {s.allocationPct.toFixed(2)}%</option>
                     ))}
                   </select>
 

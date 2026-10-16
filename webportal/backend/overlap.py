@@ -33,7 +33,11 @@ async def get_overlap_summary():
         for s in stocks:
             code  = (s.get("nseCode") or "").strip().upper()
             alloc = s.get("allocation") or 0
-            if not code or alloc <= 0:
+            # LIQUIDCASE is the synthetic cash-equivalent row persistence.py
+            # auto-tops-up a basket's unallocated remainder into -- virtually
+            # every client holds some, so it would otherwise swamp this view
+            # as the top "overlap" despite not being a real shared position.
+            if not code or alloc <= 0 or code == "LIQUIDCASE":
                 continue
             det       = bp_basket.get(code, {})
             buy_price = s.get("buyPrice")
