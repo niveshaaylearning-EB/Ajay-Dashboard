@@ -269,14 +269,20 @@ async def fetch_performance_batch(codes: list) -> dict:
     return result
 
 
-async def _fetch_yahoo_charts(codes: list) -> dict:
+async def _fetch_yahoo_charts(codes: list) -> tuple:
     """Fetch CMP and 1M OHLC for all codes via Yahoo Finance chart API.
 
     Handles three symbol variants automatically:
       1. Explicit override via YF_SYMBOL_MAP (e.g. BSE SME numeric codes)
       2. Standard NSE: CODE.NS
       3. NSE SME fallback: CODE-SM.NS (retried for any .NS that returns no data)
+
+    Returns (data, stats) -- stats = {"attempted", "succeeded", "rate_limited"}.
+    _refresh_live_cache uses stats to decide whether to back off the next
+    attempt, since hammering Yahoo at the same cadence after it starts
+    rate-limiting us only makes a block worse/longer, not better.
     """
+    rate_limited = False
     sem = asyncio.Semaphore(25)
 
     async def _one(sym: str, client: httpx.AsyncClient):
@@ -365,6 +371,8 @@ async def _fetch_yahoo_charts(codes: list) -> dict:
         if isinstance(item, Exception):
             continue
         sym, resp = item
+        if resp is not None and not isinstance(resp, Exception) and getattr(resp, "status_code", None) == 429:
+            rate_limited = True
         code, d = _parse_resp(sym, resp, sym_to_code)
         if d:
             data[code] = d
@@ -384,11 +392,14 @@ async def _fetch_yahoo_charts(codes: list) -> dict:
             if isinstance(item, Exception):
                 continue
             sym, resp = item
+            if resp is not None and not isinstance(resp, Exception) and getattr(resp, "status_code", None) == 429:
+                rate_limited = True
             code, d = _parse_resp(sym, resp, sm_map)
             if d:
                 data[code] = d
 
-    return data
+    stats = {"attempted": len(primary_syms), "succeeded": len(data), "rate_limited": rate_limited}
+    return data, stats
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -867,19 +878,76 @@ async def _mc_pe_background_refresh() -> None:
 
 _live_refresh_task = None   # asyncio.Task | None — background Yahoo refresh
 
+# ── Backoff on Yahoo rate-limiting ──────────────────────────────────────────
+# Hammering Yahoo's chart API at the same cadence right after it starts
+# rate-limiting us only prolongs the block, not shortens it. A "bad" refresh
+# (an explicit 429, or a near-total wipeout of results that looks like a
+# block rather than a few genuinely-delisted/typo'd symbols) widens the gap
+# before the next real attempt, doubling each consecutive bad cycle up to a
+# cap -- so a shorter LIVE_TTL (or a much larger stock list down the line)
+# degrades gracefully instead of digging the block in deeper. A single good
+# refresh resets it immediately back to normal.
+_live_backoff_level = 0            # consecutive bad refreshes; 0 = healthy
+_live_backoff_until  = 0.0         # epoch time; real Yahoo fetch skipped before this
+_LIVE_BACKOFF_STEP_S = 5 * 60      # first backoff: +5 min: 5, 10, 20, 40... min
+_LIVE_BACKOFF_MAX_S  = 4 * 3600    # cap at +4h so it always eventually retries on its own
+_LIVE_BACKOFF_MIN_SUCCESS_RATIO = 0.2  # <20% of codes returning data looks like a block,
+                                        # not ordinary per-symbol attrition (delisted/typo)
+
 
 async def _refresh_live_cache() -> None:
     """Background task: refresh Yahoo price data and update _live_cache in-place."""
     global _live_cache, _live_cache_ts, _mc_pe_task_running, _live_refresh_task
+    global _live_backoff_level, _live_backoff_until
     try:
         codes = _all_nse_codes()
         mc_pe_cold = not _mc_pe_cache or (time.time() - _mc_pe_cache_ts) >= _MC_PE_TTL
-        try:
-            yahoo_data = await _fetch_yahoo_charts(codes)
-        except Exception:
-            yahoo_data = {}
+
+        now = time.time()
+        yahoo_data: dict = {}
+        # Only skip overwriting an EXISTING cache -- a cold/empty cache must
+        # still get populated (even with mostly-null CMPs) so the app isn't
+        # stuck waiting forever on the very first load.
+        skip_overwrite = False
+
+        if now < _live_backoff_until:
+            # Still backing off from a recent rate-limit/block signal -- skip
+            # the real Yahoo call entirely this cycle and keep serving
+            # whatever's already cached rather than making the block worse.
+            skip_overwrite = bool(_live_cache)
+        else:
+            try:
+                yahoo_data, stats = await _fetch_yahoo_charts(codes)
+            except Exception:
+                yahoo_data, stats = {}, {"attempted": len(codes), "succeeded": 0, "rate_limited": False}
+
+            success_ratio = (stats["succeeded"] / stats["attempted"]) if stats["attempted"] else 1.0
+            is_bad_cycle = stats["rate_limited"] or success_ratio < _LIVE_BACKOFF_MIN_SUCCESS_RATIO
+
+            if is_bad_cycle:
+                _live_backoff_level += 1
+                wait_s = min(_LIVE_BACKOFF_MAX_S, _LIVE_BACKOFF_STEP_S * (2 ** (_live_backoff_level - 1)))
+                _live_backoff_until = now + wait_s
+                print(f"[price_engine] Yahoo fetch looked rate-limited/blocked "
+                      f"({stats['succeeded']}/{stats['attempted']} succeeded, "
+                      f"rate_limited={stats['rate_limited']}) -- backing off {wait_s}s "
+                      f"(level {_live_backoff_level}).")
+                # Don't let one bad cycle stomp a perfectly good existing
+                # cache with nulls -- keep serving the last known-good prices
+                # until a fetch actually succeeds again.
+                skip_overwrite = bool(_live_cache)
+            elif _live_backoff_level:
+                print(f"[price_engine] Yahoo fetch recovered -- clearing backoff "
+                      f"(was level {_live_backoff_level}).")
+                _live_backoff_level = 0
+                _live_backoff_until = 0.0
+
         if mc_pe_cold and not _mc_pe_task_running:
             asyncio.create_task(_mc_pe_background_refresh())
+
+        if skip_overwrite:
+            return
+
         data: dict = {}
         for code in codes:
             yf = yahoo_data.get(code, {}) if isinstance(yahoo_data, dict) else {}
@@ -1248,6 +1316,8 @@ async def debug_mcpe():
         "mc_pe_cache_age_s": round(time.time() - _mc_pe_cache_ts, 1) if _mc_pe_cache_ts else None,
         "live_cache_size": len(_live_cache),
         "live_cache_age_s": round(time.time() - _live_cache_ts, 1) if _live_cache_ts else None,
+        "yahoo_backoff_level": _live_backoff_level,
+        "yahoo_backoff_remaining_s": round(_live_backoff_until - time.time(), 1) if time.time() < _live_backoff_until else 0,
         "sample": {k: _mc_pe_cache[k] for k in list(_mc_pe_cache.keys())[:5]} if _mc_pe_cache else {},
     }
 
