@@ -2,7 +2,10 @@
 at once, with per-client detail (weight, buy date/price, CMP, P&L) for both
 their current position and any past sale of that same stock -- powers the
 "Overlap" tab."""
-from persistence import BASKET_DISPLAY_NAMES, _load_portfolios, _load_buy_price_data, _load_client_capital
+from persistence import (
+    BASKET_DISPLAY_NAMES, _load_portfolios, _load_buy_price_data, _load_client_capital,
+    _LIQUIDCASE_CODE,
+)
 from price_engine import fetch_live_batch
 from fastapi import APIRouter
 
@@ -37,7 +40,7 @@ async def get_overlap_summary():
             # auto-tops-up a basket's unallocated remainder into -- virtually
             # every client holds some, so it would otherwise swamp this view
             # as the top "overlap" despite not being a real shared position.
-            if not code or alloc <= 0 or code == "LIQUIDCASE":
+            if not code or alloc <= 0 or code == _LIQUIDCASE_CODE:
                 continue
             det       = bp_basket.get(code, {})
             buy_price = s.get("buyPrice")

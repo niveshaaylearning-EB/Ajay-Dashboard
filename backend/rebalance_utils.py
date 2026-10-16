@@ -35,8 +35,13 @@ SHEET_MAP = {
 
 CASH_CODES = {
     'LIQUIDBEES', 'LIQUIDCASE', 'LIQUIDETF', 'NIFTYBEES',
-    'JUNIORBEES', 'LIQUIDIETF',
+    'JUNIORBEES', 'LIQUIDIETF', 'CASH',
 }
+# "LIQUIDCASE" kept above as a legacy alias -- this set recognizes cash-
+# equivalent codes in UPLOADED Excel files, which may still contain the old
+# code from before the rename if someone re-imports an older export. "CASH"
+# is the code this module's own synthetic cash row (below) now writes going
+# forward.
 
 _price_cache: dict = {}
 
@@ -147,12 +152,12 @@ def parse_excel(excel_path: str) -> dict:
 
         # Cash-code tickers (incl. LIQUIDCASE) are stripped above, so if a
         # rebalance date's remaining holdings don't sum to 100%, park the
-        # unallocated remainder in LIQUIDCASE rather than leaving it untracked.
+        # unallocated remainder in CASH rather than leaving it untracked.
         for date_str, rows_for_date in by_date.items():
             total_weight = sum(w for _, _, _, w in rows_for_date)
             residual = 100.0 - total_weight
             if residual > 0.01:
-                rows_for_date.append(('LIQUIDCASE', 'Liquid Cash', 'Cash', round(residual, 4)))
+                rows_for_date.append(('CASH', 'Cash', 'Cash', round(residual, 4)))
 
         rebalance_dates = sorted(by_date.keys())
         result[basket_name] = {

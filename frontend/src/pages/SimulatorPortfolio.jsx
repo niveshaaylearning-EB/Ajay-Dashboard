@@ -7,6 +7,11 @@ import HistoricComparison from '../components/HistoricComparison';
 
 import { API_BASE } from '../config.js';
 
+// Synthetic stock code the backend (routers/simulator.py's
+// _reconcile_liquidcase_sim) auto-fills with a user's unallocated remainder
+// so their simulated allocation always sums to 100% -- not a real stock.
+const LIQUIDCASE_CODE = 'CASH';
+
 function SimulatorPortfolio() {
   const [loading, setLoading] = useState(true);
   const [holdings, setHoldings] = useState([]);
@@ -197,14 +202,14 @@ function SimulatorPortfolio() {
 
     // Calculate what the new total allocation would be, excluding both the
     // stock being edited (its new value is added back in below) and the
-    // auto-managed LIQUIDCASE row -- that row absorbs/releases the gap on
+    // auto-managed CASH row -- that row absorbs/releases the gap on
     // save, so it shouldn't count against the 100% cap on a real stock's edit.
     const currentTotal = (simulatedPortfolio?.holdings || [])
-      .filter(h => h.code !== 'LIQUIDCASE' && h.code !== code)
+      .filter(h => h.code !== LIQUIDCASE_CODE && h.code !== code)
       .reduce((sum, h) => sum + (h.allocation || 0), 0);
     const projectedTotal = currentTotal + newAlloc;
 
-    if (code !== 'LIQUIDCASE' && projectedTotal > 100) {
+    if (code !== LIQUIDCASE_CODE && projectedTotal > 100) {
       setAllocationError(`Overall allocation cannot exceed 100%. Current total would be ${projectedTotal.toFixed(1)}%. Please reduce the allocation.`);
       return;
     }
@@ -653,13 +658,13 @@ function SimulatorPortfolio() {
           </thead>
           <tbody>
             {getFilteredSorted(simulatedPortfolio.holdings).map((h, idx) => (
-              <tr key={h.code} style={h.code === 'LIQUIDCASE' ? { background: 'rgba(234,179,8,0.06)' } : undefined}>
+              <tr key={h.code} style={h.code === LIQUIDCASE_CODE ? { background: 'rgba(234,179,8,0.06)' } : undefined}>
                 <td style={{ padding: '5px 8px', whiteSpace: 'nowrap', color: 'var(--text-muted)', fontSize: '0.72rem', textAlign: 'right' }}>
                   {idx + 1}
                 </td>
-                <td style={{ padding: '5px 8px', position: 'sticky', left: 0, background: h.code === 'LIQUIDCASE' ? 'rgba(20,18,10,0.98)' : 'var(--surface)', zIndex: 1, whiteSpace: 'nowrap' }}>
-                  <strong style={{ fontSize: '0.8rem', color: h.code === 'LIQUIDCASE' ? 'var(--accent-amber)' : undefined }}>
-                    {h.code === 'LIQUIDCASE' ? 'CASH (LIQUIDCASE)' : h.code}
+                <td style={{ padding: '5px 8px', position: 'sticky', left: 0, background: h.code === LIQUIDCASE_CODE ? 'rgba(20,18,10,0.98)' : 'var(--surface)', zIndex: 1, whiteSpace: 'nowrap' }}>
+                  <strong style={{ fontSize: '0.8rem', color: h.code === LIQUIDCASE_CODE ? 'var(--accent-amber)' : undefined }}>
+                    {h.code === LIQUIDCASE_CODE ? 'Cash' : h.code}
                   </strong>
                 </td>
 

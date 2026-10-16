@@ -10,7 +10,7 @@
           "buyPrice": null
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 1.0,
           "buyPrice": 100.0
         }
@@ -39,7 +39,7 @@
           "buyPrice": null
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.91,
           "buyPrice": 100.0
         }
@@ -68,7 +68,7 @@
           "buyPrice": null
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.91,
           "buyPrice": 100.0
         }
@@ -97,7 +97,7 @@
           "buyPrice": 1171.975
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.91,
           "buyPrice": 100.0
         }
@@ -126,7 +126,7 @@
           "buyPrice": 1054.15
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.91,
           "buyPrice": 100.0
         }
@@ -155,7 +155,7 @@
           "buyPrice": 1054.15
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.91,
           "buyPrice": 100.0
         }
@@ -184,7 +184,7 @@
           "buyPrice": 1054.15
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.91,
           "buyPrice": 100.0
         }
@@ -213,7 +213,7 @@
           "buyPrice": 996.925
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.91,
           "buyPrice": 100.0
         }
@@ -242,7 +242,7 @@
           "buyPrice": 1024.575
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.91,
           "buyPrice": 100.0
         }
@@ -271,7 +271,7 @@
           "buyPrice": 1024.575
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.91,
           "buyPrice": 100.0
         }
@@ -310,7 +310,7 @@
           "buyPrice": null
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 1.0,
           "buyPrice": 100.0
         }
@@ -329,7 +329,7 @@
           "buyPrice": null
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 1.0,
           "buyPrice": 100.0
         }
@@ -352,7 +352,7 @@
           "buyPrice": null
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.96,
           "buyPrice": 100.0
         }
@@ -375,7 +375,7 @@
           "buyPrice": null
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.96,
           "buyPrice": 100.0
         }
@@ -403,7 +403,7 @@
           "buyPrice": null
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.96,
           "buyPrice": 100.0
         }
@@ -426,7 +426,7 @@
           "buyPrice": null
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 1.0,
           "buyPrice": 100.0
         }
@@ -447,7 +447,7 @@
           "buyPrice": 75.25
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.487433,
           "buyPrice": 100.0
         }
@@ -668,7 +668,7 @@
           "buyPrice": null
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.387433,
           "buyPrice": 100.0
         }
@@ -699,7 +699,7 @@
           "buyPrice": null
         },
         {
-          "nseCode": "LIQUIDCASE",
+          "nseCode": "CASH",
           "allocation": 0.387433,
           "buyPrice": 100.0
         }

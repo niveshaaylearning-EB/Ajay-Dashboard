@@ -592,7 +592,7 @@ export default function WhatIfModal({ nse, basketKey, basketMeta, rows, simOverl
           )}
 
           <div className="sit-no-data" style={{ marginTop: '0.5rem' }}>
-            To add a hypothetical new stock, use the "Add Hypothetical Stock" bar at the end of the holdings table. If this sell drops total allocation below 100%, the freed-up weight is automatically parked in LIQUIDCASE.
+            To add a hypothetical new stock, use the "Add Hypothetical Stock" bar at the end of the holdings table. If this sell drops total allocation below 100%, the freed-up weight is automatically parked in Cash.
           </div>
         </div>
 

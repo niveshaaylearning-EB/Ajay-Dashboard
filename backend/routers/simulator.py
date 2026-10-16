@@ -16,7 +16,7 @@ from routers.stocks import _stock_hist_price_cache, _STOCK_HIST_PRICE_TTL
 
 router = APIRouter()
 
-_LIQUIDCASE_CODE = "LIQUIDCASE"
+_LIQUIDCASE_CODE = "CASH"
 
 
 def _reconcile_liquidcase_sim(db: Session, user: str) -> None:

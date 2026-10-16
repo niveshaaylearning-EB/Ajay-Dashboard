@@ -24,6 +24,7 @@ from persistence import (
     BASKET_DISPLAY_NAMES, _require_admin, _log_activity,
     _load_portfolios, _save_portfolios,
     _load_buy_price_data, _save_buy_price_data,
+    _LIQUIDCASE_CODE,
 )
 from common.json_store import save_json as _common_save_json
 from buy_price_gains import (
@@ -174,7 +175,7 @@ async def scan_for_new_actions(admin_email: str) -> dict:
     for basket in SCAN_BASKETS:
         for stk in portfolios.get(basket, []):
             code = (stk.get("nseCode") or "").strip().upper()
-            if code and code != "LIQUIDCASE":
+            if code and code != _LIQUIDCASE_CODE:
                 pairs.append((basket, code))
     unique_codes = {code for _, code in pairs}
 

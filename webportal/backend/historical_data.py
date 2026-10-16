@@ -9,7 +9,7 @@ from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from persistence import (
     _load_historical_index, _save_historical_index, _require_admin,
     _load_portfolios, _load_buy_price_data, BASKET_DISPLAY_NAMES,
-    _load_client_capital,
+    _load_client_capital, _LIQUIDCASE_CODE,
 )
 
 router = APIRouter()
@@ -55,7 +55,7 @@ async def get_stock_exposure():
             if alloc <= 0:
                 continue
             code = (stock.get("nseCode") or "").strip().upper()
-            if not code or code == "LIQUIDCASE":
+            if not code or code == _LIQUIDCASE_CODE:
                 continue
             name = (bp_map.get(code) or {}).get("securityName") or code
             e = exposure.setdefault(code, {

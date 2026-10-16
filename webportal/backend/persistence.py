@@ -127,7 +127,7 @@ def _save_and_push(file_path: Path, data: dict) -> None:
     _common_save_json(str(file_path), data, f"webportal/backend/{file_path.name}", sync=False)
 
 
-_LIQUIDCASE_CODE = "LIQUIDCASE"
+_LIQUIDCASE_CODE = "CASH"
 _ALLOC_TOLERANCE = 0.001  # fraction (0.1%) -- ignore rounding noise from float weights
 
 

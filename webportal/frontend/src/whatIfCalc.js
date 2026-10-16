@@ -138,7 +138,7 @@ function applyWeightReduction(row, reduceByPct) {
   return { ...row, allocation, contribution: calcContribution(allocation, row.performance) };
 }
 
-const LIQUIDCASE_CODE = 'LIQUIDCASE';
+const LIQUIDCASE_CODE = 'CASH';
 const ALLOC_TOLERANCE = 0.001; // fraction (0.1%) -- ignore float rounding noise
 
 // Whenever a simulated sell (full or partial, from either the standalone

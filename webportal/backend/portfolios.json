@@ -6,7 +6,7 @@
       "buyPrice": 735.3
     },
     {
-      "nseCode": "LIQUIDCASE",
+      "nseCode": "CASH",
       "allocation": 0.91,
       "buyPrice": 100.0
     }
@@ -23,28 +23,28 @@
       "buyPrice": 708.4
     },
     {
-      "nseCode": "LIQUIDCASE",
+      "nseCode": "CASH",
       "allocation": 0.387433,
       "buyPrice": 100.0
     }
   ],
   "Ajay_Surya": [
     {
-      "nseCode": "LIQUIDCASE",
+      "nseCode": "CASH",
       "allocation": 1.0,
       "buyPrice": 100.0
     }
   ],
   "Maitri": [
     {
-      "nseCode": "LIQUIDCASE",
+      "nseCode": "CASH",
       "allocation": 1.0,
       "buyPrice": 100.0
     }
   ],
   "Arjun_1": [
     {
-      "nseCode": "LIQUIDCASE",
+      "nseCode": "CASH",
       "allocation": 1.0,
       "buyPrice": 100.0
     }
@@ -56,7 +56,7 @@
       "buyPrice": 1146.19
     },
     {
-      "nseCode": "LIQUIDCASE",
+      "nseCode": "CASH",
       "allocation": 0.18983998,
       "buyPrice": 100
     },

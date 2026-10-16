@@ -649,6 +649,33 @@ app.include_router(_holdings_router)
 
 # ── Admin: force-push all persistent data to GitHub ──────────────────────────
 
+@app.post("/api/admin/migrate-liquidcase-to-cash")
+def migrate_liquidcase_to_cash(request: Request, db: Session = Depends(get_db)):
+    """One-time migration: the outer app's "Simulator" feature (a separate,
+    SQL-backed implementation of the same cash-placeholder concept webportal
+    uses) stored its synthetic cash rows under the stock code "LIQUIDCASE"
+    in SimulationMod (per-user what-if allocations) and BasketHistory
+    (rebalance-import holdings). Both were renamed to "CASH" in code
+    (routers/simulator.py, rebalance_utils.py) so new writes use the new
+    code -- this updates any rows a live user already created under the old
+    one, so simulator.py's _reconcile_liquidcase_sim() (which filters by the
+    new code) doesn't stop recognizing them and create a duplicate cash row
+    per affected user. Safe to call more than once -- a second run just
+    updates zero rows."""
+    user = getattr(request.state, "user", None)
+    if not is_admin_email(user):
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    sm_count = db.query(database.SimulationMod).filter_by(stock_code="LIQUIDCASE").update(
+        {"stock_code": "CASH"}
+    )
+    bh_count = db.query(database.BasketHistory).filter_by(stock_code="LIQUIDCASE").update(
+        {"stock_code": "CASH"}
+    )
+    db.commit()
+    return {"status": "ok", "simulation_mod_rows_updated": sm_count, "basket_history_rows_updated": bh_count}
+
+
 @app.get("/api/admin/export-data")
 def admin_export_data(request: Request, db: Session = Depends(get_db)):
     """Read-only counterpart to sync-to-github: returns every durability JSON

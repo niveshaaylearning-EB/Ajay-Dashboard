@@ -246,7 +246,7 @@ export default function WhatIfSellStockBar({ basketKey, rows, simOverlay, setSim
                       <span>{formatPercent(before.totalContribution)} &rarr; {formatPercent(after.totalContribution)}</span>
                     </div>
                     <div className="sit-no-data" style={{ marginTop: '0.4rem' }}>
-                      If this sell drops total allocation below 100%, the freed-up weight is automatically parked in LIQUIDCASE.
+                      If this sell drops total allocation below 100%, the freed-up weight is automatically parked in Cash.
                     </div>
                   </div>
                 </>
