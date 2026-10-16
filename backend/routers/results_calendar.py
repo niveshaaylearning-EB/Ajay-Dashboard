@@ -98,13 +98,6 @@ async def _refresh_results_calendar_data(db: Session) -> list:
                 hidden_set.add((hs.basket_id, hs.stock_code.strip().upper()))
 
     holdings = db.query(database.BasketHistory).filter(database.BasketHistory.stock_code != None).all()
-    if not holdings:
-        _results_cache["calendar"] = {
-            "time": now,
-            "data": []
-        }
-        _save_results_cache(_results_cache)
-        return []
 
     stocks_map = {}
     for h in holdings:
@@ -140,6 +133,19 @@ async def _refresh_results_calendar_data(db: Session) -> list:
                     stocks_map[code]["baskets"].add(basket_label)
     except Exception:
         pass
+
+    # Only genuinely nothing to check when BOTH sources (legacy BasketHistory
+    # AND webportal's own portfolios) came up empty -- returning here before
+    # the webportal supplement above used to mean a stale/empty BasketHistory
+    # table alone was enough to permanently blank this feature, since every
+    # real holding now lives in webportal, not that legacy table.
+    if not stocks_map:
+        _results_cache["calendar"] = {
+            "time": now,
+            "data": []
+        }
+        _save_results_cache(_results_cache)
+        return []
 
     unique_codes = set(stocks_map.keys())
 
