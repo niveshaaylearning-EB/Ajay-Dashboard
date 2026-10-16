@@ -26,7 +26,7 @@ const TABLE_HEADERS_IPO = [
 // Tenures available in the selector, and the minimum holding period (in
 // days) required for each to show a value instead of "—". 1M has no
 // minimum -- it's shown from day one, same as before this feature existed.
-const TENURE_OPTIONS = ['1M', '3M', '6M', '1Y', '2Y', '3Y', '5Y'];
+const TENURE_OPTIONS = ['1D', '1M', '3M', '6M', '1Y', '2Y', '3Y', '5Y'];
 const TENURE_MIN_DAYS = { '1M': 0, '3M': 91, '6M': 182, '1Y': 365, '2Y': 730, '3Y': 1095, '5Y': 1825 };
 
 function getTenurePerformance(row, tenure, perfByTenure) {

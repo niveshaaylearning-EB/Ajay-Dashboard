@@ -36,7 +36,7 @@ async def get_live_all():
 async def get_performance_batch(codes: str):
     """
     Multi-tenure performance for a comma-separated list of NSE codes:
-    {code: {"1M": pct, "3M": pct, "6M": pct, "1Y": pct, "2Y": pct, "3Y": pct, "5Y": pct}}
+    {code: {"1D": pct, "1M": pct, "3M": pct, "6M": pct, "1Y": pct, "2Y": pct, "3Y": pct, "5Y": pct}}
     A tenure is null for a code if there isn't enough price history to cover it
     (e.g. a recently-listed stock has no 5Y bar yet) -- the frontend separately
     gates which tenures it *shows* per stock based on the user's holding period.

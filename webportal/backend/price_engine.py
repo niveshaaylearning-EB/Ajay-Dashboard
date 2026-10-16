@@ -150,8 +150,14 @@ _perf_cache: dict = {}          # code -> {time, data: {tenure: pct|None}}
 _PERF_TTL = 12 * 3600           # 12h -- daily bars for past periods never change; only today's does
 
 def _compute_tenure_performance(bars: list) -> dict:
-    """`bars` is a list of (timestamp_seconds, open, close) sorted ascending by time."""
+    """`bars` is a list of (timestamp_seconds, open, close) sorted ascending by time.
+    Also stashes "_lastClose" (the most recent completed trading day's close,
+    internal-only, stripped before this reaches a caller) -- fetch_performance_batch
+    uses it to derive "1D" fresh on every call against the separately
+    live-updating CMP cache, rather than baking a CMP-based figure into this
+    12h cache where it would go stale within minutes of today's price moving."""
     result = {t: None for t in _TENURE_DAYS}
+    result["_lastClose"] = None
     if not bars:
         return result
 
@@ -163,6 +169,7 @@ def _compute_tenure_performance(bars: list) -> dict:
     last_ts, _, last_close = completed[-1]
     if last_close is None:
         return result
+    result["_lastClose"] = last_close
     for tenure, days in _TENURE_DAYS.items():
         cutoff = last_ts - days * 86400
         start_bar = next((b for b in completed if b[0] >= cutoff), None)
@@ -211,43 +218,53 @@ async def _fetch_tenure_bars(code: str, client: httpx.AsyncClient) -> list:
     return bars
 
 async def fetch_performance_batch(codes: list) -> dict:
-    """{code: {tenure: pct|None}} for every code, using a 12h per-code cache."""
+    """{code: {tenure: pct|None}} for every code, using a 12h per-code cache
+    for 1M..5Y (derived from daily bars that never change for past periods),
+    plus "1D" derived fresh on every call from the separately live-updating
+    CMP cache -- 1D must never be served from the 12h cache or it would sit
+    stale (today's price keeps moving; a day-old daily bar doesn't)."""
     now = time.time()
-    result: dict = {}
+    raw: dict = {}
     to_fetch: list = []
     for c in codes:
         cached = _perf_cache.get(c)
         if cached and (now - cached['time']) < _PERF_TTL:
-            result[c] = cached['data']
+            raw[c] = cached['data']
         else:
             to_fetch.append(c)
 
-    if not to_fetch:
-        return result
+    if to_fetch:
+        if not _YF_COOKIES:
+            await _refresh_yf_cookies()
 
-    if not _YF_COOKIES:
-        await _refresh_yf_cookies()
+        sem = asyncio.Semaphore(15)
 
-    sem = asyncio.Semaphore(15)
+        async def _one(code: str, client: httpx.AsyncClient):
+            async with sem:
+                bars = await _fetch_tenure_bars(code, client)
+                return code, _compute_tenure_performance(bars)
 
-    async def _one(code: str, client: httpx.AsyncClient):
-        async with sem:
-            bars = await _fetch_tenure_bars(code, client)
-            return code, _compute_tenure_performance(bars)
+        async with httpx.AsyncClient(
+            follow_redirects=True,
+            headers={**YF_HEADERS, "Referer": "https://finance.yahoo.com/", "Origin": "https://finance.yahoo.com"},
+            cookies=_YF_COOKIES,
+        ) as client:
+            pairs = await asyncio.gather(*[_one(c, client) for c in to_fetch], return_exceptions=True)
 
-    async with httpx.AsyncClient(
-        follow_redirects=True,
-        headers={**YF_HEADERS, "Referer": "https://finance.yahoo.com/", "Origin": "https://finance.yahoo.com"},
-        cookies=_YF_COOKIES,
-    ) as client:
-        pairs = await asyncio.gather(*[_one(c, client) for c in to_fetch], return_exceptions=True)
+        for item in pairs:
+            if isinstance(item, Exception):
+                continue
+            code, perf = item
+            _perf_cache[code] = {'time': now, 'data': perf}
+            raw[code] = perf
 
-    for item in pairs:
-        if isinstance(item, Exception):
-            continue
-        code, perf = item
-        _perf_cache[code] = {'time': now, 'data': perf}
-        result[code] = perf
+    result: dict = {}
+    for code, data in raw.items():
+        out = {t: data.get(t) for t in _TENURE_DAYS}
+        last_close = data.get("_lastClose")
+        cmp = (_live_cache.get(code) or {}).get("cmp")
+        out["1D"] = (cmp - last_close) / last_close if (last_close and cmp is not None and last_close > 0) else None
+        result[code] = out
 
     return result
 

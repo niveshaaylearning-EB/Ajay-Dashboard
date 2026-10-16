@@ -6,11 +6,11 @@
 // actually uploaded -- never from today's calendar date.
 
 export const TENURE_LOOKBACK_DAYS = {
-  '1M': 30, '3M': 91, '6M': 182, '1Y': 365, '2Y': 730, '3Y': 1095, '5Y': 1825,
+  '1D': 1, '1M': 30, '3M': 91, '6M': 182, '1Y': 365, '2Y': 730, '3Y': 1095, '5Y': 1825,
 };
 
 export const TENURE_FULL_LABELS = {
-  '1M': '1 Month', '3M': '3 Months', '6M': '6 Months',
+  '1D': '1 Day', '1M': '1 Month', '3M': '3 Months', '6M': '6 Months',
   '1Y': '1 Year', '2Y': '2 Years', '3Y': '3 Years', '5Y': '5 Years',
 };
 
