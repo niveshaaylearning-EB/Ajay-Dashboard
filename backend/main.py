@@ -649,6 +649,85 @@ app.include_router(_holdings_router)
 
 # ── Admin: force-push all persistent data to GitHub ──────────────────────────
 
+@app.get("/api/admin/export-data")
+def admin_export_data(request: Request, db: Session = Depends(get_db)):
+    """Read-only counterpart to sync-to-github: returns every durability JSON
+    file's CURRENT content directly (DB-backed tables freshly queried, disk
+    files read as-is) instead of pushing anywhere. Exists because
+    sync-to-github is a dead end in production right now (GITHUB_TOKEN/
+    GITHUB_REPO aren't set), so there was otherwise no way to pull live state
+    back out and keep the git-committed copies from going stale -- which
+    matters because the Dockerfile COPYs these files straight into the image,
+    so a stale committed copy would silently overwrite live data on the next
+    deploy."""
+    user = getattr(request.state, "user", None)
+    if not is_admin_email(user):
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    out: dict = {"backend": {}, "webportal": {}, "errors": []}
+
+    def _allowed_emails_data(db_):
+        rows = db_.query(database.AllowedEmail).all()
+        return [{"email": r.email, "added_by": r.added_by, "added_at": r.added_at,
+                 "totp_secret": r.totp_secret, "totp_enabled": r.totp_enabled,
+                 "backup_codes": r.backup_codes, "first_name": r.first_name,
+                 "last_name": r.last_name, "password_hash": r.password_hash,
+                 "is_approved": r.is_approved if r.is_approved is not None else 1,
+                 "is_admin": r.is_admin if r.is_admin is not None else 0}
+                for r in rows]
+
+    def _login_history_data(db_):
+        rows = db_.query(database.LoginHistory).order_by(database.LoginHistory.id.desc()).limit(500).all()
+        return [{"email": r.email, "logged_at": r.logged_at, "ip_address": r.ip_address, "location": r.location} for r in rows]
+
+    def _audit_log_data(db_):
+        rows = db_.query(database.AuditLog).order_by(database.AuditLog.id.desc()).limit(300).all()
+        return [{"user_email": r.user_email, "event_type": r.event_type, "details": r.details,
+                 "created_at": r.created_at, "ip_address": r.ip_address, "location": r.location} for r in rows]
+
+    def _stock_events_data(db_):
+        rows = db_.query(StockEvent).order_by(StockEvent.id.desc()).limit(1000).all()
+        return [{"basket_id": r.basket_id, "stock_code": r.stock_code, "event_type": r.event_type,
+                 "description": r.description, "old_value": r.old_value, "new_value": r.new_value,
+                 "event_date": r.event_date, "user_email": getattr(r, "user_email", None)} for r in rows]
+
+    def _simulation_mods_data(db_):
+        rows = db_.query(database.SimulationMod).all()
+        return [{"user_email": r.user_email, "stock_code": r.stock_code, "allocation": r.allocation,
+                 "buy_price": r.buy_price, "buy_date": r.buy_date, "cmp": r.cmp} for r in rows]
+
+    def _simulation_sips_data(db_):
+        rows = db_.query(database.SimulationSip).all()
+        return [{"user_email": r.user_email, "sip_date": r.sip_date, "amount": r.amount} for r in rows]
+
+    for name, fn in (
+        ("allowed_emails_data.json", _allowed_emails_data),
+        ("login_history.json",       _login_history_data),
+        ("audit_log.json",           _audit_log_data),
+        ("stock_events.json",        _stock_events_data),
+        ("simulation_mods.json",     _simulation_mods_data),
+        ("simulation_sips.json",     _simulation_sips_data),
+    ):
+        try:
+            out["backend"][name] = fn(db)
+        except Exception as e:
+            out["errors"].append(f"backend/{name}: {e}")
+
+    _wp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'webportal', 'backend')
+    for fname in ("watchlist.json", "buy_price_data.json", "portfolios.json",
+                  "corporate_actions.json", "historical_index.json", "gains_statement.json",
+                  "clients.json", "client_id_map.json", "client_capital.json",
+                  "rebalance_history.json", "undo_snapshots.json", "activity_log.json"):
+        path = os.path.join(_wp_dir, fname)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                out["webportal"][fname] = json.load(f)
+        except Exception as e:
+            out["errors"].append(f"webportal/{fname}: {e}")
+
+    return out
+
+
 @app.post("/api/admin/sync-to-github")
 def admin_sync_to_github(request: Request, db: Session = Depends(get_db)):
     """Force-push all JSON data to GitHub and report success/failure per file."""
