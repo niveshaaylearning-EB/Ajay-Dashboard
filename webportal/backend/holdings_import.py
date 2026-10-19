@@ -412,24 +412,40 @@ def _pdf_to_simple_rows(raw: bytes) -> list[dict]:
 
 
 _NUMBER_RE = re.compile(r'^[+-]?[\d,]+\.?\d*$')
+# OCR glues stray table-gridline fragments onto numbers at the EDGES of the
+# token (e.g. "102|", "[STEAMHOUSE", "_1,03,15,710|", "'50,05,308|") -- strip
+# those before checking whether what's left is a clean number. Deliberately
+# NOT stripping from the middle of a token: that's what keeps "E2E" (a real
+# scrip name containing a digit) from being misread as the number 2.
+_EDGE_NOISE_RE = re.compile(r"^[\[\](){}|_'\"`\s]+|[\[\](){}|_'\"`\s]+$")
 
 
 def _ocr_word_to_number(text: str):
-    """OCR'd numbers often carry commas (Indian digit grouping) or stray
-    currency symbols/garbage a human wouldn't type -- strip before parsing."""
-    cleaned = re.sub(r'[^\d.+-]', '', text)
-    if not cleaned or not _NUMBER_RE.match(text.replace('₹', '').strip()):
+    """OCR'd numbers often carry commas (Indian digit grouping), a ₹ sign,
+    or edge noise from misread table borders -- strip all three, then only
+    accept it as a number if what remains is a clean number through and
+    through (not just at the edges), so a name with a stray digit in the
+    middle (e.g. "E2E") is never misread as one."""
+    core = _EDGE_NOISE_RE.sub('', text.replace('₹', ''))
+    if not core or not _NUMBER_RE.match(core):
         return None
     try:
-        return float(cleaned)
+        return float(core.replace(',', ''))
     except ValueError:
         return None
 
 
 def _ocr_image_to_simple_rows(raw: bytes) -> list[dict]:
     """No real table structure to read at all -- OCRs every word with its
-    pixel position, clusters words into visual rows by Y-coordinate and
-    sorts each row left-to-right by X, then (since the column ORDER in this
+    pixel position, groups words into rows using Tesseract's OWN line
+    segmentation (block/paragraph/line numbers from image_to_data), NOT a
+    manual Y-coordinate clustering: a naive "is this word's Y close to the
+    previous word's Y" check chains transitively across an entire multi-row
+    table when row height is small relative to text height (confirmed on a
+    real 12-row statement: the whole table collapsed into one "row"), since
+    each pair of adjacent lines can be closer together than two words within
+    the same line. Tesseract's own layout analysis doesn't have that bug.
+    Sorts each row left-to-right by X, then (since the column ORDER in this
     format is fixed: SCRIP, BUY PRICE, MARKET PRICE, QUANTITY, BUY VALUE,
     MARKET VALUE) splits each data row into its leading non-numeric words
     (the scrip name) and its trailing numeric words, taking the 1st and 3rd
@@ -439,23 +455,17 @@ def _ocr_image_to_simple_rows(raw: bytes) -> list[dict]:
     img = Image.open(io.BytesIO(raw))
     data = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
 
-    words = []
+    line_words: dict = {}
     for i in range(len(data["text"])):
         txt = (data["text"][i] or "").strip()
-        if txt:
-            words.append({"text": txt, "left": data["left"][i], "top": data["top"][i]})
-    if not words:
+        if not txt:
+            continue
+        key = (data["block_num"][i], data["par_num"][i], data["line_num"][i])
+        line_words.setdefault(key, []).append({"text": txt, "left": data["left"][i]})
+    if not line_words:
         return []
 
-    words.sort(key=lambda w: w["top"])
-    rows: list[list[dict]] = [[words[0]]]
-    for w in words[1:]:
-        if abs(w["top"] - rows[-1][-1]["top"]) <= 12:
-            rows[-1].append(w)
-        else:
-            rows.append([w])
-    for row in rows:
-        row.sort(key=lambda w: w["left"])
+    rows = [sorted(words, key=lambda w: w["left"]) for _, words in sorted(line_words.items())]
 
     header_idx = next((i for i, row in enumerate(rows)
                         if any(w["text"].strip(".:").lower() in ("scrip", "script") for w in row)), None)
