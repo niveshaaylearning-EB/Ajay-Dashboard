@@ -439,6 +439,41 @@ def _ocr_word_to_number(text: str):
         return None
 
 
+# Only applied to a token we're POSITIONALLY CERTAIN should be a number (one
+# of this row's 5 known numeric columns, by the fixed column order) -- never
+# to the scrip-name portion, where a real letter must never get silently
+# reinterpreted as a digit. Confirmed on a real statement: "ai6" was actually
+# "416" ('a' -> '4', 'i' -> '1') in a condensed table font -- a classic OCR
+# letter/digit confusion, recoverable; a pure digit-for-digit misread (e.g.
+# a genuine "9" read as "3") is a different failure mode this can't catch,
+# since both "3" and "9" already look like valid numbers on their own.
+_OCR_DIGIT_CONFUSIONS = str.maketrans({
+    'O': '0', 'o': '0', 'D': '0',
+    'I': '1', 'l': '1', 'i': '1',
+    'Z': '2', 'z': '2',
+    'A': '4', 'a': '4',
+    'S': '5', 's': '5',
+    'G': '6', 'b': '6',
+    'T': '7',
+    'B': '8',
+    'g': '9', 'q': '9',
+})
+
+
+def _ocr_word_to_number_fuzzy(text: str):
+    n = _ocr_word_to_number(text)
+    if n is not None:
+        return n
+    core = _EDGE_NOISE_RE.sub('', text.replace('₹', ''))
+    substituted = core.translate(_OCR_DIGIT_CONFUSIONS)
+    if not substituted or not _NUMBER_RE.match(substituted):
+        return None
+    try:
+        return float(substituted.replace(',', ''))
+    except ValueError:
+        return None
+
+
 def _merge_split_number_fragments(texts: list[str]) -> list[str]:
     """A large comma-grouped number can get OCR'd as two separate words when
     there's a tiny gap mid-number (confirmed on a real statement: "99,12,764"
@@ -520,8 +555,8 @@ def _ocr_image_to_simple_rows(raw: bytes) -> list[dict]:
         name_tokens, number_tokens = texts[:-5], texts[-5:]
         if not name_tokens:
             continue
-        price = _ocr_word_to_number(number_tokens[0]) or 0
-        qty   = _ocr_word_to_number(number_tokens[2]) or 0
+        price = _ocr_word_to_number_fuzzy(number_tokens[0]) or 0
+        qty   = _ocr_word_to_number_fuzzy(number_tokens[2]) or 0
         out.append({
             "scripName": " ".join(name_tokens).strip(),
             "buyPrice":  round(price, 4),
