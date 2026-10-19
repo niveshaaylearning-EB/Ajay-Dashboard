@@ -44,6 +44,7 @@ from persistence import (
     _load_client_id_map, _save_client_id_map,
     _load_buy_price_data, _load_client_capital,
     _auto_save_rollback, _push_undo_snapshot,
+    _LIQUIDCASE_CODE,
 )
 from price_engine import _fetch_nse_symbols
 
@@ -704,13 +705,44 @@ async def preview_holdings_upload_simple(request: Request, basketKey: str = Form
     for h in holdings:
         h["allocationPct"] = round(h["buyValue"] / total_capital * 100, 4) if total_capital else None
 
+    # This upload MERGES into the client's existing holdings (an existing
+    # stock this particular file doesn't mention stays untouched -- it's
+    # not necessarily sold just because one statement left it off), so flag
+    # each row as "new" / "changed" / "unchanged" against what's already
+    # there, and project the TRUE resulting total (existing stocks this
+    # file doesn't mention + every uploaded row) rather than just this
+    # file's own total, so over-capital is judged against the real outcome.
+    existing_stocks = _load_portfolios().get(basket_key, []) or []
+    existing_map = {
+        (s.get("nseCode") or "").strip().upper(): s
+        for s in existing_stocks if s.get("nseCode") != _LIQUIDCASE_CODE
+    }
+    for h in holdings:
+        existing = existing_map.get(h["nseCode"])
+        if existing is None:
+            h["status"] = "new"
+            continue
+        existing_price = existing.get("buyPrice")
+        existing_value = round((existing.get("allocation") or 0) * total_capital, 2) if total_capital else None
+        price_match = existing_price is not None and abs(existing_price - h["buyPrice"]) < 0.01
+        value_match = existing_value is not None and abs(existing_value - h["buyValue"]) <= max(1.0, h["buyValue"] * 0.001)
+        h["status"] = "unchanged" if (price_match and value_match) else "changed"
+
+    uploaded_codes = {h["nseCode"] for h in holdings}
+    untouched_value = sum(
+        (s.get("allocation") or 0) * total_capital
+        for code, s in existing_map.items() if code not in uploaded_codes
+    ) if total_capital else 0.0
+    merged_total = round(untouched_value + file_total, 2)
+
     return {
         "basketKey":    basket_key,
         "basketLabel":  BASKET_DISPLAY_NAMES.get(basket_key),
         "holdings":     holdings,
         "fileTotal":    file_total,
+        "mergedTotal":  merged_total,
         "totalCapital": total_capital,
-        "overCapital":  bool(total_capital and file_total > total_capital),
+        "overCapital":  bool(total_capital and merged_total > total_capital),
         "filename":     file.filename,
         "extractionMethod": extraction_method,
     }
@@ -718,10 +750,14 @@ async def preview_holdings_upload_simple(request: Request, basketKey: str = Form
 
 @router.post("/api/confirm-holdings-upload-simple")
 async def confirm_holdings_upload_simple(request: Request, body: dict = Body(...)):
-    """Applies a previewed simple-format upload: REPLACES the target client's
-    stock list with the uploaded holdings, allocation computed against their
-    Total Capital -- the unfilled remainder becomes Cash automatically via
-    _save_portfolios' existing auto-top-up, same as any other save."""
+    """Applies a previewed simple-format upload: MERGES the uploaded holdings
+    into the target client's existing stock list -- a stock already held
+    that this particular statement doesn't mention is kept untouched (it
+    isn't necessarily sold just because one upload left it off), while every
+    uploaded row is added (new) or overwrites the existing one (changed/
+    unchanged). Allocation is computed against Total Capital; Cash is then
+    recomputed as whatever's left, since _save_portfolios' auto-top-up only
+    ever tops Cash up and can't trim it back down when a merge adds stock."""
     admin_email = _require_admin(request)
 
     basket_key = (body.get("basketKey") or "").strip()
@@ -737,20 +773,28 @@ async def confirm_holdings_upload_simple(request: Request, body: dict = Body(...
     if not total_capital:
         raise HTTPException(400, "This client's Total Capital isn't set yet -- set it on the All Clients page first, then upload holdings.")
 
-    stocks = []
+    uploaded = {}
     for h in holdings:
         nse = (h.get("nseCode") or "").strip().upper()
         buy_value = h.get("buyValue")
         buy_price = h.get("buyPrice")
         if not nse or buy_value is None or buy_price is None:
             continue
-        stocks.append({
+        uploaded[nse] = {
             "nseCode":    nse,
             "allocation": round(float(buy_value) / total_capital, 6),
             "buyPrice":   round(float(buy_price), 4),
-        })
-    if not stocks:
+        }
+    if not uploaded:
         raise HTTPException(400, "No valid stocks in the uploaded holdings.")
+
+    portfolios = _load_portfolios()
+    existing_stocks = portfolios.get(basket_key, []) or []
+    kept = [
+        s for s in existing_stocks
+        if s.get("nseCode") != _LIQUIDCASE_CODE and (s.get("nseCode") or "").strip().upper() not in uploaded
+    ]
+    stocks = kept + list(uploaded.values())
 
     total_alloc = sum(s["allocation"] for s in stocks)
     if total_alloc > 1.001:
@@ -763,12 +807,11 @@ async def confirm_holdings_upload_simple(request: Request, body: dict = Body(...
     _auto_save_rollback()
     _push_undo_snapshot(basket_key, label=f"Holdings upload ({filename or 'simple format'})")
 
-    portfolios = _load_portfolios()
     portfolios[basket_key] = stocks
     _save_portfolios(portfolios)
 
     _log_activity("holdings_upload_simple", admin_email, {
-        "basket": basket_key, "stockCount": len(stocks), "filename": filename,
+        "basket": basket_key, "stockCount": len(stocks), "newOrChanged": len(uploaded), "filename": filename,
     })
 
     return {

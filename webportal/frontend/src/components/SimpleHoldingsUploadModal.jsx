@@ -8,6 +8,12 @@ const hdrStyle  = { padding: '0.3rem 0.7rem', color: 'var(--text-secondary)', fo
 
 const fmtRupee = (v) => v == null ? '—' : '₹' + Number(v).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 
+const STATUS_STYLE = {
+  new:       { label: 'New',       bg: 'rgba(16,185,129,0.14)', color: 'var(--accent-green)' },
+  changed:   { label: 'Changed',   bg: 'rgba(251,191,36,0.14)', color: 'var(--accent-amber)' },
+  unchanged: { label: 'Unchanged', bg: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)' },
+};
+
 // Admin uploads a simple SCRIP/BUY PRICE/QUANTITY summary table for a client
 // they've already picked (no Client-ID auto-detection like the broker-statement
 // format -- this one doesn't have an embeddable ID at all). Allocation % here
@@ -85,6 +91,10 @@ export default function SimpleHoldingsUploadModal({ previewData, onClose, onConf
             <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
               {previewData.filename} · {holdings.length} stock{holdings.length !== 1 ? 's' : ''} · {fmtRupee(previewData.fileTotal)} in this file
             </div>
+            <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>
+              <i className="fa-solid fa-circle-info" style={{ marginRight: '0.3rem' }} />
+              This merges into the client's existing holdings — any stock they already hold that isn't in this file stays untouched.
+            </div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer',
             color: 'var(--text-secondary)', fontSize: '1.1rem', padding: '0.2rem' }}>
@@ -134,7 +144,7 @@ export default function SimpleHoldingsUploadModal({ previewData, onClose, onConf
               fontSize: '0.8rem', color: 'var(--text-secondary)',
             }}>
               <i className="fa-solid fa-triangle-exclamation" style={{ color: 'var(--accent-amber)', marginRight: '0.4rem' }} />
-              This file's total ({fmtRupee(previewData.fileTotal)}) is more than this client's Total Capital ({fmtRupee(previewData.totalCapital)}).
+              The resulting total after merging ({fmtRupee(previewData.mergedTotal ?? previewData.fileTotal)}) is more than this client's Total Capital ({fmtRupee(previewData.totalCapital)}).
             </div>
           )}
 
@@ -150,7 +160,7 @@ export default function SimpleHoldingsUploadModal({ previewData, onClose, onConf
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                {['Scrip (as uploaded)', 'Resolved NSE Code', 'Quantity', 'Buy Price', 'Buy Value', 'Allocation %'].map(h => (
+                {['Status', 'Scrip (as uploaded)', 'Resolved NSE Code', 'Quantity', 'Buy Price', 'Buy Value', 'Allocation %'].map(h => (
                   <th key={h} style={hdrStyle}>{h}</th>
                 ))}
               </tr>
@@ -158,6 +168,17 @@ export default function SimpleHoldingsUploadModal({ previewData, onClose, onConf
             <tbody>
               {holdings.map((h, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <td style={cellStyle}>
+                    {(() => {
+                      const s = STATUS_STYLE[h.status] || STATUS_STYLE.new;
+                      return (
+                        <span style={{ background: s.bg, color: s.color, fontWeight: 600, fontSize: '0.7rem',
+                                       padding: '0.15rem 0.5rem', borderRadius: '999px', whiteSpace: 'nowrap' }}>
+                          {s.label}
+                        </span>
+                      );
+                    })()}
+                  </td>
                   <td style={{ ...cellStyle, color: 'var(--text-secondary)' }}>{h.scripName}</td>
                   <td style={cellStyle}>
                     <input
