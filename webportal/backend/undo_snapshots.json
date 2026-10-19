@@ -438,87 +438,6 @@
   ],
   "Jay_Chaudhari": [
     {
-      "ts": 1787815850.0805743,
-      "label": "before save 27 Aug 2026 13:00",
-      "stocks": [
-        {
-          "nseCode": "TATAPOWER",
-          "allocation": 0.512567,
-          "buyPrice": 75.25
-        },
-        {
-          "nseCode": "CASH",
-          "allocation": 0.487433,
-          "buyPrice": 100.0
-        }
-      ],
-      "sold": [],
-      "buyPriceData": {
-        "TATAPOWER": {
-          "buyDate": ""
-        }
-      },
-      "rebalanceHistory": []
-    },
-    {
-      "ts": 1788166030.2391639,
-      "label": "Broker holdings upload (holdings-PA8384.xlsx)",
-      "stocks": [],
-      "sold": [],
-      "buyPriceData": {},
-      "rebalanceHistory": []
-    },
-    {
-      "ts": 1788346815.0049255,
-      "label": "before save 02 Sep 2026 16:30",
-      "stocks": [
-        {
-          "nseCode": "TATAPOWER",
-          "allocation": 0.512567,
-          "buyPrice": 75.25
-        },
-        {
-          "nseCode": "YESBANK",
-          "allocation": 0.487433,
-          "buyPrice": 12.7786
-        }
-      ],
-      "sold": [],
-      "buyPriceData": {},
-      "rebalanceHistory": []
-    },
-    {
-      "ts": 1788346818.0746455,
-      "label": "before save 02 Sep 2026 16:30",
-      "stocks": [
-        {
-          "nseCode": "TATAPOWER",
-          "allocation": 0.512567,
-          "buyPrice": 75.25
-        },
-        {
-          "nseCode": "YESBANK",
-          "allocation": 0.487433,
-          "buyPrice": 12.7786
-        },
-        {
-          "nseCode": "",
-          "allocation": null,
-          "buyPrice": null
-        }
-      ],
-      "sold": [],
-      "buyPriceData": {
-        "TATAPOWER": {
-          "buyDate": ""
-        },
-        "YESBANK": {
-          "buyDate": ""
-        }
-      },
-      "rebalanceHistory": []
-    },
-    {
       "ts": 1788346822.572423,
       "label": "before save 02 Sep 2026 16:30",
       "stocks": [
@@ -711,6 +630,116 @@
         },
         "INFY": {
           "buyDate": "1 May 2020"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1792404096.2554758,
+      "label": "before save 19 Oct 2026 15:31",
+      "stocks": [
+        {
+          "nseCode": "TATAPOWER",
+          "allocation": 0.512567,
+          "buyPrice": 75.25
+        },
+        {
+          "nseCode": "INFY",
+          "allocation": 0.1,
+          "buyPrice": 708.4
+        },
+        {
+          "nseCode": "CASH",
+          "allocation": 0.387433,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "TATAPOWER": {
+          "buyDate": ""
+        },
+        "INFY": {
+          "buyDate": "1 May 2020"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1792404098.252057,
+      "label": "before save 19 Oct 2026 15:31",
+      "stocks": [
+        {
+          "nseCode": "INFY",
+          "allocation": 0.1,
+          "buyPrice": 708.4
+        },
+        {
+          "nseCode": "CASH",
+          "allocation": 0.9,
+          "buyPrice": 100
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "TATAPOWER": {
+          "buyDate": ""
+        },
+        "INFY": {
+          "buyDate": "1 May 2020"
+        },
+        "CASH": {
+          "buyDate": ""
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1792404439.682444,
+      "label": "before save 19 Oct 2026 15:37",
+      "stocks": [
+        {
+          "nseCode": "INFY",
+          "allocation": 0.1,
+          "buyPrice": 708.4
+        },
+        {
+          "nseCode": "CASH",
+          "allocation": 0.9,
+          "buyPrice": 100.0
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "TATAPOWER": {
+          "buyDate": ""
+        },
+        "INFY": {
+          "buyDate": "1 May 2020"
+        }
+      },
+      "rebalanceHistory": []
+    },
+    {
+      "ts": 1792404442.1609783,
+      "label": "before save 19 Oct 2026 15:37",
+      "stocks": [
+        {
+          "nseCode": "CASH",
+          "allocation": 1.0,
+          "buyPrice": 100
+        }
+      ],
+      "sold": [],
+      "buyPriceData": {
+        "TATAPOWER": {
+          "buyDate": ""
+        },
+        "INFY": {
+          "buyDate": "1 May 2020"
+        },
+        "CASH": {
+          "buyDate": ""
         }
       },
       "rebalanceHistory": []

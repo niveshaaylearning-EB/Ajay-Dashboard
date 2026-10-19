@@ -13,18 +13,8 @@
   ],
   "Jay_Chaudhari": [
     {
-      "nseCode": "TATAPOWER",
-      "allocation": 0.512567,
-      "buyPrice": 75.25
-    },
-    {
-      "nseCode": "INFY",
-      "allocation": 0.1,
-      "buyPrice": 708.4
-    },
-    {
       "nseCode": "CASH",
-      "allocation": 0.387433,
+      "allocation": 1.0,
       "buyPrice": 100.0
     }
   ],
@@ -115,5 +105,6 @@
       "allocation": 0.07730348,
       "buyPrice": 954.3
     }
-  ]
+  ],
+  "Jay_Chaudhari_sold": []
 }
