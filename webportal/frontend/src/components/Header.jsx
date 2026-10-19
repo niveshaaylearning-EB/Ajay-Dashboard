@@ -19,6 +19,7 @@ export default function Header({
   canUndo, onUndo,
   onBuyPrice, onCalculateReturn, onPLStatement, onCorporateActions, onAllClients,
   onUploadHoldings, uploadingHoldings = false,
+  onUploadHoldingsSimple, uploadingSimpleHoldings = false,
   readOnly = false,
   tenure = '1M', latestDataDate = null,
 }) {
@@ -154,8 +155,13 @@ export default function Header({
                 <i className="fa-solid fa-users" /> All Clients
               </button>
               {!readOnly && (
-                <button className="db-action-item" disabled={uploadingHoldings} onClick={() => { setActionsOpen(false); onUploadHoldings(); }}>
-                  <i className={`fa-solid ${uploadingHoldings ? 'fa-spinner fa-spin' : 'fa-file-import'}`} /> {uploadingHoldings ? 'Uploading…' : 'Upload Holdings'}
+                <button className="db-action-item" disabled={uploadingSimpleHoldings} onClick={() => { setActionsOpen(false); onUploadHoldingsSimple(); }} title="Upload holdings for this client -- accepts Excel, PDF, or a screenshot/photo">
+                  <i className={`fa-solid ${uploadingSimpleHoldings ? 'fa-spinner fa-spin' : 'fa-file-import'}`} /> {uploadingSimpleHoldings ? 'Uploading…' : 'Upload Holdings'}
+                </button>
+              )}
+              {!readOnly && (
+                <button className="db-action-item" disabled={uploadingHoldings} onClick={() => { setActionsOpen(false); onUploadHoldings(); }} title="Zerodha/Groww broker-statement export with an embedded Client ID">
+                  <i className={`fa-solid ${uploadingHoldings ? 'fa-spinner fa-spin' : 'fa-file-excel'}`} /> {uploadingHoldings ? 'Uploading…' : 'Upload Broker Statement'}
                 </button>
               )}
             </div>

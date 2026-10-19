@@ -2,7 +2,7 @@ import { API_BASE, getAuthToken } from './api/base.js';
 import { READ_ONLY } from './utils/adminState.js';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import './App.css';
-import { fetchBasket, fetchBaskets, fetchLiveData, fetchLiveStock, saveBasket, fetchBasketStockMap, fetchBasketWeightMap, fetchPerformanceBatch, fetchOhlcLookup, fetchClientsSummary, setClientCapital } from './api/client.js';
+import { fetchBasket, fetchBaskets, fetchLiveData, fetchLiveStock, saveBasket, fetchBasketStockMap, fetchBasketWeightMap, fetchPerformanceBatch, fetchOhlcLookup, fetchClientsSummary, setClientCapital, previewHoldingsUploadSimple } from './api/client.js';
 
 import Header from './components/Header.jsx';
 import KPIPanel         from './components/KPIPanel.jsx';
@@ -22,6 +22,7 @@ import PLStatementPage       from './components/PLStatementPage.jsx';
 import CorporateActionsPage  from './components/CorporateActionsPage.jsx';
 import AllClientsPage        from './components/AllClientsPage.jsx';
 import HoldingsUploadModal   from './components/HoldingsUploadModal.jsx';
+import SimpleHoldingsUploadModal from './components/SimpleHoldingsUploadModal.jsx';
 import DashboardView         from './components/DashboardView.jsx';
 import StockExposurePanel    from './components/StockExposurePanel.jsx';
 import WatchlistPage         from './components/WatchlistPage.jsx';
@@ -351,6 +352,35 @@ export default function App() {
     }
     setBasketKey(data.basketKey);
   }, [basketKey, refreshBasketOptions]);
+
+  // ── Upload Holdings — simple format (Excel/PDF/image), for whichever
+  // client's basket is currently open. Same entry point (Portfolio Actions)
+  // as the broker-statement importer above, but targets basketKey directly
+  // instead of auto-detecting a Client ID, so it also works for formats that
+  // have no embeddable ID at all (PDF/image). ─────────────────────────────
+  const simpleHoldingsFileRef = useRef(null);
+  const [simpleHoldingsPreview, setSimpleHoldingsPreview] = useState(null);
+  const [uploadingSimpleHoldings, setUploadingSimpleHoldings] = useState(false);
+
+  const handleSimpleHoldingsFileSelected = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !basketKey) return;
+    setUploadingSimpleHoldings(true);
+    try {
+      const data = await previewHoldingsUploadSimple(basketKey, file);
+      setSimpleHoldingsPreview(data);
+    } catch (err) {
+      window.alert('Holdings upload failed: ' + err.message);
+    } finally {
+      setUploadingSimpleHoldings(false);
+    }
+  };
+
+  const handleSimpleHoldingsConfirmed = useCallback(async (data) => {
+    setSimpleHoldingsPreview(null);
+    await handleHoldingsConfirmed(data);
+  }, [handleHoldingsConfirmed]);
 
   // Load NSE symbol list once on mount for autocomplete
   useEffect(() => {
@@ -964,6 +994,20 @@ export default function App() {
         style={{ display: 'none' }}
         onChange={handleHoldingsUpload}
       />
+      {simpleHoldingsPreview && (
+        <SimpleHoldingsUploadModal
+          previewData={simpleHoldingsPreview}
+          onClose={() => setSimpleHoldingsPreview(null)}
+          onConfirmed={handleSimpleHoldingsConfirmed}
+        />
+      )}
+      <input
+        ref={simpleHoldingsFileRef}
+        type="file"
+        accept=".xlsx,.xls,.pdf,.png,.jpg,.jpeg,.webp"
+        style={{ display: 'none' }}
+        onChange={handleSimpleHoldingsFileSelected}
+      />
       <div className="dashboard-container">
         <Header
           basketKey={basketKey}
@@ -982,6 +1026,8 @@ export default function App() {
           onAllClients={() => { window.location.href = '/wp/all-clients' + window.location.search; }}
           onUploadHoldings={() => holdingsFileRef.current?.click()}
           uploadingHoldings={uploadingHoldings}
+          onUploadHoldingsSimple={() => simpleHoldingsFileRef.current?.click()}
+          uploadingSimpleHoldings={uploadingSimpleHoldings}
           readOnly={READ_ONLY}
           tenure={selectedTenure}
           latestDataDate={latestDataDate}
