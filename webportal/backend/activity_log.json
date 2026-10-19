@@ -1,5 +1,14 @@
 [
   {
+    "action": "set_client_capital",
+    "user": "jay.chaudhari@niveshaay.com",
+    "ts": "19 Oct 2026 10:45 UTC",
+    "details": {
+      "key": "Jay_Chaudhari",
+      "amount": 1000000000.0
+    }
+  },
+  {
     "action": "holdings_upload_simple",
     "user": "jay.chaudhari@niveshaay.com",
     "ts": "19 Oct 2026 09:55 UTC",
