@@ -324,7 +324,11 @@ def _resolve_scrip_to_code(scrip_name: str, basket_key: str, bp_data: dict, nse_
             return prefix[0]
 
     cleaned = _NAME_SUFFIX_RE.sub('', upper)
-    cleaned = re.sub(r'[.\s]+', '', cleaned).strip()
+    # Strip everything but letters/digits -- not just "." and whitespace --
+    # since OCR can glue a stray border-line character onto either edge of
+    # the name (confirmed: a leading "[" survived into the final code when
+    # nothing else matched, e.g. "[ARTIPHARMALABS" instead of "AARTIPHARM").
+    cleaned = re.sub(r'[^A-Z0-9]+', '', cleaned).strip()
     return cleaned or upper
 
 
