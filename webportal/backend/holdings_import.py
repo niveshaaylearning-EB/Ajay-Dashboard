@@ -11,11 +11,26 @@ auto-detect which client it belongs to, so the admin picks the target client
 directly (e.g. an "Upload Holdings" button on that client's own row), and
 allocation % is computed against that client's Total Capital (client_capital.json)
 rather than the file's own total, so the unfilled remainder correctly becomes
-their Cash balance via persistence.py's existing auto-top-up."""
+their Cash balance via persistence.py's existing auto-top-up.
+
+That simple format accepts three input types:
+  .xlsx/.xls -- parsed via openpyxl, real cell boundaries, most reliable.
+  .pdf       -- assumed to have a real text layer (not scanned); pdfplumber
+               extracts an actual table grid, fed into the SAME row parser
+               as the Excel path since the shapes match.
+  .png/.jpg/.jpeg -- no real table structure at all, so pytesseract (OCR)
+               reads words + their pixel positions, groups them into visual
+               rows/columns, and reconstructs a best-effort grid. Markedly
+               less reliable than the other two -- every field (not just the
+               NSE code) is editable in the preview before confirming,
+               since OCR misreads numbers as often as names."""
 import io
 import re
 
 import openpyxl
+import pdfplumber
+import pytesseract
+from PIL import Image
 from fastapi import APIRouter, Body, File, Form, HTTPException, Request, UploadFile
 
 from persistence import (
@@ -28,6 +43,18 @@ from persistence import (
 from price_engine import _fetch_nse_symbols
 
 router = APIRouter()
+
+# pytesseract shells out to the real `tesseract` binary, which must be on
+# PATH -- the standard Windows installer (UB-Mannheim build) adds it to the
+# SYSTEM PATH, but any process already running (or started before a reboot/
+# fresh login) won't see that update. Fall back to its well-known default
+# install location explicitly rather than depend on PATH timing.
+import os as _os
+import shutil as _shutil
+if _os.name == "nt" and not _shutil.which("tesseract"):
+    _default_win_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    if _os.path.isfile(_default_win_path):
+        pytesseract.pytesseract.tesseract_cmd = _default_win_path
 
 
 def _find_client_id(rows) -> str | None:
@@ -332,6 +359,17 @@ def _parse_simple_holdings_sheet(rows) -> list[dict]:
     def cell(row, idx):
         return row[idx] if idx is not None and idx < len(row) else None
 
+    def to_number(v):
+        """openpyxl can hand back a native float directly; pdfplumber (and
+        OCR) only ever produce strings, often with comma digit-grouping
+        (e.g. "76,100") -- strip that before parsing either way."""
+        if v is None:
+            return None
+        if isinstance(v, (int, float)):
+            return float(v)
+        s = re.sub(r'[,\s₹]', '', str(v))
+        return float(s) if s else None
+
     out = []
     for row in rows[header_idx + 1:]:
         if not row or all(c is None for c in row):
@@ -342,14 +380,108 @@ def _parse_simple_holdings_sheet(rows) -> list[dict]:
         if str(scrip).strip().lower() in ("grand total", "total"):
             break
         try:
-            price = float(cell(row, price_col))
-            qty   = float(cell(row, qty_col))
+            price = to_number(cell(row, price_col))
+            qty   = to_number(cell(row, qty_col))
+            if price is None or qty is None:
+                continue
         except (TypeError, ValueError):
             continue
         if price <= 0 or qty <= 0:
             continue
         out.append({
             "scripName": str(scrip).strip(),
+            "buyPrice":  round(price, 4),
+            "quantity":  qty,
+            "buyValue":  round(price * qty, 2),
+        })
+    return out
+
+
+def _pdf_to_simple_rows(raw: bytes) -> list[dict]:
+    """Real-text PDF (not scanned) -- pdfplumber extracts an actual table
+    grid (cell boundaries inferred from the PDF's own layout/ruling lines),
+    which has the exact same shape as openpyxl's row list, so it's fed
+    straight into the same parser as the Excel path."""
+    with pdfplumber.open(io.BytesIO(raw)) as pdf:
+        for page in pdf.pages:
+            for table in (page.extract_tables() or []):
+                parsed = _parse_simple_holdings_sheet(table)
+                if parsed:
+                    return parsed
+    return []
+
+
+_NUMBER_RE = re.compile(r'^[+-]?[\d,]+\.?\d*$')
+
+
+def _ocr_word_to_number(text: str):
+    """OCR'd numbers often carry commas (Indian digit grouping) or stray
+    currency symbols/garbage a human wouldn't type -- strip before parsing."""
+    cleaned = re.sub(r'[^\d.+-]', '', text)
+    if not cleaned or not _NUMBER_RE.match(text.replace('₹', '').strip()):
+        return None
+    try:
+        return float(cleaned)
+    except ValueError:
+        return None
+
+
+def _ocr_image_to_simple_rows(raw: bytes) -> list[dict]:
+    """No real table structure to read at all -- OCRs every word with its
+    pixel position, clusters words into visual rows by Y-coordinate and
+    sorts each row left-to-right by X, then (since the column ORDER in this
+    format is fixed: SCRIP, BUY PRICE, MARKET PRICE, QUANTITY, BUY VALUE,
+    MARKET VALUE) splits each data row into its leading non-numeric words
+    (the scrip name) and its trailing numeric words, taking the 1st and 3rd
+    numbers as buy price and quantity. Markedly less reliable than the
+    Excel/PDF paths by nature, not because of a cut corner -- every field is
+    editable in the preview before confirming."""
+    img = Image.open(io.BytesIO(raw))
+    data = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
+
+    words = []
+    for i in range(len(data["text"])):
+        txt = (data["text"][i] or "").strip()
+        if txt:
+            words.append({"text": txt, "left": data["left"][i], "top": data["top"][i]})
+    if not words:
+        return []
+
+    words.sort(key=lambda w: w["top"])
+    rows: list[list[dict]] = [[words[0]]]
+    for w in words[1:]:
+        if abs(w["top"] - rows[-1][-1]["top"]) <= 12:
+            rows[-1].append(w)
+        else:
+            rows.append([w])
+    for row in rows:
+        row.sort(key=lambda w: w["left"])
+
+    header_idx = next((i for i, row in enumerate(rows)
+                        if any(w["text"].strip(".:").lower() in ("scrip", "script") for w in row)), None)
+    if header_idx is None:
+        return []
+
+    out = []
+    for row in rows[header_idx + 1:]:
+        texts = [w["text"] for w in row]
+        joined = " ".join(texts).strip().lower()
+        if joined.startswith("grand total") or joined.startswith("total"):
+            break
+        name_tokens, numbers = [], []
+        for t in texts:
+            n = _ocr_word_to_number(t)
+            if n is not None:
+                numbers.append(n)
+            elif not numbers:   # still in the leading name portion
+                name_tokens.append(t)
+        if not name_tokens or len(numbers) < 3:
+            continue
+        price, qty = numbers[0], numbers[2]
+        if price <= 0 or qty <= 0:
+            continue
+        out.append({
+            "scripName": " ".join(name_tokens).strip(),
             "buyPrice":  round(price, 4),
             "quantity":  qty,
             "buyValue":  round(price * qty, 2),
@@ -369,20 +501,33 @@ async def preview_holdings_upload_simple(request: Request, basketKey: str = Form
         raise HTTPException(400, f"Unknown basket: {basket_key}")
 
     fname = (file.filename or "").lower()
-    if not fname.endswith((".xlsx", ".xls")):
-        raise HTTPException(400, "Only .xlsx/.xls files are supported.")
-
     raw = await file.read()
-    try:
-        wb = openpyxl.load_workbook(io.BytesIO(raw), data_only=True)
-    except Exception:
-        raise HTTPException(400, "Could not read this file as an Excel workbook.")
 
-    ws = wb.worksheets[0]
-    rows = list(ws.iter_rows(values_only=True))
-    wb.close()
+    if fname.endswith((".xlsx", ".xls")):
+        try:
+            wb = openpyxl.load_workbook(io.BytesIO(raw), data_only=True)
+        except Exception:
+            raise HTTPException(400, "Could not read this file as an Excel workbook.")
+        ws = wb.worksheets[0]
+        rows = list(ws.iter_rows(values_only=True))
+        wb.close()
+        parsed = _parse_simple_holdings_sheet(rows)
+        extraction_method = "excel"
+    elif fname.endswith(".pdf"):
+        try:
+            parsed = _pdf_to_simple_rows(raw)
+        except Exception as e:
+            raise HTTPException(400, f"Could not read this PDF: {e}")
+        extraction_method = "pdf"
+    elif fname.endswith((".png", ".jpg", ".jpeg", ".webp")):
+        try:
+            parsed = _ocr_image_to_simple_rows(raw)
+        except Exception as e:
+            raise HTTPException(400, f"Could not read this image: {e}")
+        extraction_method = "ocr"
+    else:
+        raise HTTPException(400, "Only .xlsx/.xls, .pdf, or .png/.jpg/.jpeg files are supported.")
 
-    parsed = _parse_simple_holdings_sheet(rows)
     if not parsed:
         raise HTTPException(400, "Could not find a SCRIP / BUY PRICE / QUANTITY table in this file.")
 
@@ -407,6 +552,7 @@ async def preview_holdings_upload_simple(request: Request, basketKey: str = Form
         "totalCapital": total_capital,
         "overCapital":  bool(total_capital and file_total > total_capital),
         "filename":     file.filename,
+        "extractionMethod": extraction_method,
     }
 
 

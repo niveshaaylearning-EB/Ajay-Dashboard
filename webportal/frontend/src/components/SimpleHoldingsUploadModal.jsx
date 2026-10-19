@@ -23,11 +23,21 @@ export default function SimpleHoldingsUploadModal({ previewData, onClose, onConf
   const canConfirm = hasTotalCapital && totalAllocPct <= 100.1 && holdings.every(h => h.nseCode);
 
   const updateCode = (idx, val) => {
-    setHoldings(prev => prev.map((h, i) => i === idx ? {
-      ...h,
-      nseCode: val,
-      allocationPct: hasTotalCapital ? round4(h.buyValue / previewData.totalCapital * 100) : null,
-    } : h));
+    setHoldings(prev => prev.map((h, i) => i === idx ? { ...h, nseCode: val } : h));
+  };
+
+  // Buy Price/Quantity are editable too (not just the NSE code) -- the OCR
+  // path in particular misreads numbers as often as names, so a value here
+  // may need correcting before it ever reaches the allocation math.
+  const updateNumber = (idx, field, raw) => {
+    const num = parseFloat(raw);
+    setHoldings(prev => prev.map((h, i) => {
+      if (i !== idx) return h;
+      const next = { ...h, [field]: isNaN(num) ? 0 : num };
+      next.buyValue = round4(next.buyPrice * next.quantity);
+      next.allocationPct = hasTotalCapital ? round4(next.buyValue / previewData.totalCapital * 100) : null;
+      return next;
+    }));
   };
 
   const handleConfirm = async () => {
@@ -79,6 +89,17 @@ export default function SimpleHoldingsUploadModal({ previewData, onClose, onConf
         </div>
 
         <div style={{ overflowY: 'auto', flex: 1, padding: '1rem 1.5rem' }}>
+
+          {previewData.extractionMethod === 'ocr' && (
+            <div style={{
+              marginBottom: '1rem', padding: '0.65rem 0.9rem', borderRadius: '8px',
+              background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.3)',
+              fontSize: '0.8rem', color: 'var(--text-secondary)',
+            }}>
+              <i className="fa-solid fa-eye" style={{ color: 'var(--accent-amber)', marginRight: '0.4rem' }} />
+              <strong style={{ color: 'var(--accent-amber)' }}>Read from an image (OCR)</strong> — this is less reliable than an Excel/PDF upload. Check every scrip code, quantity, and buy price below carefully before confirming.
+            </div>
+          )}
 
           {!hasTotalCapital && (
             <div style={{
@@ -134,8 +155,22 @@ export default function SimpleHoldingsUploadModal({ previewData, onClose, onConf
                       }}
                     />
                   </td>
-                  <td style={cellStyle}>{h.quantity}</td>
-                  <td style={cellStyle}>{fmtRupee(h.buyPrice)}</td>
+                  <td style={cellStyle}>
+                    <input
+                      type="number" value={h.quantity}
+                      onChange={e => updateNumber(i, 'quantity', e.target.value)}
+                      style={{ width: '6rem', background: 'var(--input-bg)', color: 'var(--text-primary)',
+                               border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.2rem 0.4rem' }}
+                    />
+                  </td>
+                  <td style={cellStyle}>
+                    <input
+                      type="number" value={h.buyPrice}
+                      onChange={e => updateNumber(i, 'buyPrice', e.target.value)}
+                      style={{ width: '6.5rem', background: 'var(--input-bg)', color: 'var(--text-primary)',
+                               border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.2rem 0.4rem' }}
+                    />
+                  </td>
                   <td style={cellStyle}>{fmtRupee(h.buyValue)}</td>
                   <td style={{ ...cellStyle, fontWeight: 600, color: 'var(--accent-blue)' }}>
                     {h.allocationPct != null ? h.allocationPct.toFixed(2) + '%' : '—'}

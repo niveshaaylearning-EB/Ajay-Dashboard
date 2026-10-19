@@ -292,7 +292,7 @@ export default function AllClientsPage() {
       <input
         ref={holdingsFileRef}
         type="file"
-        accept=".xlsx,.xls"
+        accept=".xlsx,.xls,.pdf,.png,.jpg,.jpeg,.webp"
         style={{ display: 'none' }}
         onChange={handleHoldingsFileSelected}
       />

@@ -56,3 +56,6 @@ yfinance==0.2.51
 pyotp==2.9.0
 qrcode==8.2
 slowapi==0.1.9
+pytesseract==0.3.13
+Pillow==13.0.0
+pdfplumber==0.11.10

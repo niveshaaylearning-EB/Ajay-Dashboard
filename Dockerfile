@@ -24,9 +24,11 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# supervisor + build tools for scipy/nsepython
+# supervisor + build tools for scipy/nsepython + tesseract-ocr (runtime, for
+# image/scanned-holdings-statement upload via pytesseract -- kept out of the
+# later "purge build tools" step since it's needed at runtime, not just build time)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    supervisor gcc g++ gfortran libopenblas-dev liblapack-dev pkg-config \
+    supervisor gcc g++ gfortran libopenblas-dev liblapack-dev pkg-config tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt ./backend/requirements.txt
