@@ -18,12 +18,16 @@ That simple format accepts three input types:
   .pdf       -- assumed to have a real text layer (not scanned); pdfplumber
                extracts an actual table grid, fed into the SAME row parser
                as the Excel path since the shapes match.
-  .png/.jpg/.jpeg -- no real table structure at all, so pytesseract (OCR)
-               reads words + their pixel positions, groups them into visual
-               rows/columns, and reconstructs a best-effort grid. Markedly
-               less reliable than the other two -- every field (not just the
-               NSE code) is editable in the preview before confirming,
-               since OCR misreads numbers as often as names."""
+  .png/.jpg/.jpeg -- no real table structure at all. If GEMINI_API_KEY is
+               set, Gemini reads the image directly and returns the table
+               as structured JSON -- far more reliable than OCR, since it
+               understands the image as a whole table rather than
+               reconstructing one from individual word positions. Falls
+               back to pytesseract (free, local, no API key, markedly less
+               reliable -- confirmed on a real statement: character-level
+               misreads an LLM doesn't make) if the key isn't configured.
+               Every field (not just the NSE code) stays editable in the
+               preview before confirming either way."""
 import io
 import re
 
@@ -32,6 +36,7 @@ import pdfplumber
 import pytesseract
 from PIL import Image
 from fastapi import APIRouter, Body, File, Form, HTTPException, Request, UploadFile
+from pydantic import BaseModel
 
 from persistence import (
     BASKET_DISPLAY_NAMES, add_client, _require_admin, _log_activity,
@@ -55,6 +60,12 @@ if _os.name == "nt" and not _shutil.which("tesseract"):
     _default_win_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
     if _os.path.isfile(_default_win_path):
         pytesseract.pytesseract.tesseract_cmd = _default_win_path
+
+# Gemini vision for the image upload path -- optional: only used if
+# GEMINI_API_KEY is set (falls back to pytesseract OCR otherwise), so this
+# stays safe to deploy before the key exists in a given environment's .env.
+_GEMINI_API_KEY = _os.environ.get("GEMINI_API_KEY", "")
+_GEMINI_MODEL = "gemini-flash-latest"
 
 
 def _find_client_id(rows) -> str | None:
@@ -495,6 +506,64 @@ def _merge_split_number_fragments(texts: list[str]) -> list[str]:
     return merged
 
 
+class _GeminiHoldingRow(BaseModel):
+    scripName: str
+    buyPrice: float
+    quantity: float
+
+
+class _GeminiHoldingsTable(BaseModel):
+    rows: list[_GeminiHoldingRow]
+
+
+def _gemini_image_to_simple_rows(raw: bytes, mime_type: str) -> list[dict]:
+    """Ask Gemini to read the table directly and return structured JSON --
+    it understands the image as a whole table (knows which column is which,
+    isn't thrown off by a misread digit the way positional text-parsing is),
+    rather than reconstructing rows/columns from individual OCR'd word
+    positions the way the pytesseract fallback has to. response_schema
+    forces the model to return exactly {scripName, buyPrice, quantity} per
+    row -- no free-text parsing of its answer needed at all."""
+    from google import genai
+
+    client = genai.Client(api_key=_GEMINI_API_KEY)
+    prompt = (
+        "This image contains a stock holdings table with columns SCRIP, "
+        "BUY PRICE, MARKET PRICE, QUANTITY, BUY VALUE, MARKET VALUE (column "
+        "names/order may vary slightly). For every stock ROW (skip any "
+        "header row and any 'Grand Total'/'Total' summary row), extract "
+        "exactly three fields: scripName (the company name as printed in "
+        "the SCRIP column), buyPrice (the BUY PRICE column, a plain number, "
+        "no currency symbol or commas), and quantity (the QUANTITY column, "
+        "a plain number, no commas). Read every digit carefully -- these are "
+        "real financial figures that will be used as-is. Do not include the "
+        "MARKET PRICE, BUY VALUE, or MARKET VALUE columns in your answer."
+    )
+    resp = client.models.generate_content(
+        model=_GEMINI_MODEL,
+        contents=[
+            genai.types.Part.from_bytes(data=raw, mime_type=mime_type),
+            prompt,
+        ],
+        config=genai.types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=_GeminiHoldingsTable,
+        ),
+    )
+    table: _GeminiHoldingsTable = resp.parsed
+    if table is None:
+        return []
+    return [
+        {
+            "scripName": r.scripName.strip(),
+            "buyPrice":  round(r.buyPrice, 4),
+            "quantity":  r.quantity,
+            "buyValue":  round(r.buyPrice * r.quantity, 2),
+        }
+        for r in table.rows if r.scripName.strip()
+    ]
+
+
 def _ocr_image_to_simple_rows(raw: bytes) -> list[dict]:
     """No real table structure to read at all -- OCRs every word with its
     pixel position, groups words into rows using Tesseract's OWN line
@@ -597,11 +666,25 @@ async def preview_holdings_upload_simple(request: Request, basketKey: str = Form
             raise HTTPException(400, f"Could not read this PDF: {e}")
         extraction_method = "pdf"
     elif fname.endswith((".png", ".jpg", ".jpeg", ".webp")):
-        try:
-            parsed = _ocr_image_to_simple_rows(raw)
-        except Exception as e:
-            raise HTTPException(400, f"Could not read this image: {e}")
+        parsed = []
         extraction_method = "ocr"
+        if _GEMINI_API_KEY:
+            mime_type = {
+                ".png": "image/png", ".jpg": "image/jpeg",
+                ".jpeg": "image/jpeg", ".webp": "image/webp",
+            }[next(ext for ext in (".png", ".jpg", ".jpeg", ".webp") if fname.endswith(ext))]
+            try:
+                parsed = _gemini_image_to_simple_rows(raw, mime_type)
+                extraction_method = "gemini"
+            except Exception as e:
+                print(f"[holdings_import] Gemini extraction failed, falling back to OCR: {e}")
+        if not parsed:
+            try:
+                parsed = _ocr_image_to_simple_rows(raw)
+                if extraction_method != "gemini":
+                    extraction_method = "ocr"
+            except Exception as e:
+                raise HTTPException(400, f"Could not read this image: {e}")
     else:
         raise HTTPException(400, "Only .xlsx/.xls, .pdf, or .png/.jpg/.jpeg files are supported.")
 

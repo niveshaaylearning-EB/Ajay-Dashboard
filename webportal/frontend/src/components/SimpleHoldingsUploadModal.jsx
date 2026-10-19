@@ -94,6 +94,17 @@ export default function SimpleHoldingsUploadModal({ previewData, onClose, onConf
 
         <div style={{ overflowY: 'auto', flex: 1, padding: '1rem 1.5rem' }}>
 
+          {previewData.extractionMethod === 'gemini' && (
+            <div style={{
+              marginBottom: '1rem', padding: '0.65rem 0.9rem', borderRadius: '8px',
+              background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.3)',
+              fontSize: '0.8rem', color: 'var(--text-secondary)',
+            }}>
+              <i className="fa-solid fa-wand-magic-sparkles" style={{ color: 'var(--accent-blue)', marginRight: '0.4rem' }} />
+              <strong style={{ color: 'var(--accent-blue)' }}>Read from an image (Gemini)</strong> — much more reliable than plain OCR, but still worth a quick glance before confirming.
+            </div>
+          )}
+
           {previewData.extractionMethod === 'ocr' && (
             <div style={{
               marginBottom: '1rem', padding: '0.65rem 0.9rem', borderRadius: '8px',
@@ -101,7 +112,7 @@ export default function SimpleHoldingsUploadModal({ previewData, onClose, onConf
               fontSize: '0.8rem', color: 'var(--text-secondary)',
             }}>
               <i className="fa-solid fa-eye" style={{ color: 'var(--accent-amber)', marginRight: '0.4rem' }} />
-              <strong style={{ color: 'var(--accent-amber)' }}>Read from an image (OCR)</strong> — this is less reliable than an Excel/PDF upload. Check every scrip code, quantity, and buy price below carefully before confirming.
+              <strong style={{ color: 'var(--accent-amber)' }}>Read from an image (OCR fallback)</strong> — Gemini wasn't available, so this used plain OCR, which is less reliable. Check every scrip code, quantity, and buy price below carefully before confirming.
             </div>
           )}
 
