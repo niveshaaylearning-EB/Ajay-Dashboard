@@ -1,18 +1,31 @@
 """Broker holdings-statement import (Zerodha/Groww-style "holdings-<ClientID>.xlsx"
 export, with an 'Equity' sheet and a 'Client ID' cell). Two-step preview/confirm,
 same shape as rebalance.py's Excel-upload flow: preview parses and returns data
-WITHOUT writing anything, confirm applies the (admin-reviewed) result."""
+WITHOUT writing anything, confirm applies the (admin-reviewed) result.
+
+Also: a second, simpler upload format (SCRIP / BUY PRICE / MARKET PRICE /
+QUANTITY / BUY VALUE / MARKET VALUE summary table, company names instead of
+tickers, no embedded Client ID) -- see the "-simple" preview/confirm endpoints
+near the bottom of this file. Unlike the format above, this one has no way to
+auto-detect which client it belongs to, so the admin picks the target client
+directly (e.g. an "Upload Holdings" button on that client's own row), and
+allocation % is computed against that client's Total Capital (client_capital.json)
+rather than the file's own total, so the unfilled remainder correctly becomes
+their Cash balance via persistence.py's existing auto-top-up."""
 import io
+import re
 
 import openpyxl
-from fastapi import APIRouter, Body, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Body, File, Form, HTTPException, Request, UploadFile
 
 from persistence import (
     BASKET_DISPLAY_NAMES, add_client, _require_admin, _log_activity,
     _load_portfolios, _save_portfolios,
     _load_client_id_map, _save_client_id_map,
+    _load_buy_price_data, _load_client_capital,
     _auto_save_rollback, _push_undo_snapshot,
 )
+from price_engine import _fetch_nse_symbols
 
 router = APIRouter()
 
@@ -224,4 +237,238 @@ async def confirm_holdings_upload(request: Request, body: dict = Body(...)):
         "basketKey":   basket_key,
         "basketLabel": BASKET_DISPLAY_NAMES.get(basket_key, basket_key),
         "count":       len(stocks),
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Simple format: SCRIP / BUY PRICE / MARKET PRICE / QUANTITY / BUY VALUE /
+# MARKET VALUE summary table (company names, no ISIN, no embedded Client ID --
+# the admin picks the target client directly, so this doesn't need any of the
+# Client-ID-matching machinery above).
+# ─────────────────────────────────────────────────────────────────────────────
+
+_NAME_SUFFIX_RE = re.compile(r'\b(LIMITED|LTD|PVT|PRIVATE|CO|COMPANY|INDIA)\b\.?')
+_NAME_STRIP_RE  = re.compile(r'[^A-Z0-9]+')
+
+
+def _normalize_company_name(name: str) -> str:
+    """Collapse a company name to just its distinguishing letters/digits, so
+    "Steamhouse (India) Limited" and "STEAMHOUSE INDIA LTD." compare equal --
+    strip common suffixes first so they don't masquerade as distinguishing
+    content, then strip everything that isn't alphanumeric."""
+    s = _NAME_SUFFIX_RE.sub('', name.upper())
+    return _NAME_STRIP_RE.sub('', s)
+
+
+def _resolve_scrip_to_code(scrip_name: str, basket_key: str, bp_data: dict, nse_symbols: list) -> str:
+    """Best-effort company-name -> NSE code resolution for the simple upload
+    format (no ISIN, no ticker column, just a SCRIP name). Priority:
+      1. This basket's own existing holdings (exact code or securityName match)
+      2. The full NSE-listed company-name universe (exact normalized match,
+         then a one-sided prefix match if that's unambiguous)
+      3. The scrip name itself, cleaned into a code-safe string -- matches how
+         this app already stores a handful of holdings that were never
+         cleanly resolved (e.g. "NEOGEN CHEMICALS" as a literal nseCode)
+    Always returns a non-empty, review-before-confirm best guess -- the admin
+    can still correct it in the preview before anything is saved."""
+    name = (scrip_name or "").strip()
+    if not name:
+        return ""
+
+    basket_bp = bp_data.get(basket_key, {})
+    upper = name.upper()
+    if upper in basket_bp:
+        return upper
+    lower = name.lower()
+    for code, det in basket_bp.items():
+        sn = (det.get("securityName") or "").lower()
+        if sn and (sn == lower or sn.startswith(lower) or lower.startswith(sn)):
+            return code
+
+    norm = _normalize_company_name(name)
+    if norm:
+        exact = [row["symbol"] for row in nse_symbols if _normalize_company_name(row["name"]) == norm]
+        if len(exact) == 1:
+            return exact[0]
+        prefix = [row["symbol"] for row in nse_symbols
+                  if row["name"] and (_normalize_company_name(row["name"]).startswith(norm)
+                                       or norm.startswith(_normalize_company_name(row["name"])))]
+        if len(prefix) == 1:
+            return prefix[0]
+
+    cleaned = _NAME_SUFFIX_RE.sub('', upper)
+    cleaned = re.sub(r'[.\s]+', '', cleaned).strip()
+    return cleaned or upper
+
+
+def _parse_simple_holdings_sheet(rows) -> list[dict]:
+    """Parse the SCRIP / BUY PRICE / MARKET PRICE / QUANTITY / BUY VALUE /
+    MARKET VALUE table. Header row position varies; stops at a "Grand Total"
+    row or the end of the sheet. MARKET PRICE/MARKET VALUE are read-only
+    snapshots at export time (live CMP supersedes them immediately), so only
+    SCRIP/BUY PRICE/QUANTITY are actually used -- buy value is recomputed
+    from them rather than trusting the file's own (possibly rounded) column."""
+    header_idx = None
+    headers: list[str] = []
+    for i, row in enumerate(rows):
+        if not row:
+            continue
+        cells = [str(c).strip().lower() if c is not None else "" for c in row]
+        if "scrip" in cells:
+            header_idx, headers = i, cells
+            break
+    if header_idx is None:
+        return []
+
+    def col(fragment):
+        return next((i for i, h in enumerate(headers) if fragment in h), None)
+
+    scrip_col = col("scrip")
+    price_col = col("buy price")
+    qty_col   = col("quantity")
+    if scrip_col is None or price_col is None or qty_col is None:
+        return []
+
+    def cell(row, idx):
+        return row[idx] if idx is not None and idx < len(row) else None
+
+    out = []
+    for row in rows[header_idx + 1:]:
+        if not row or all(c is None for c in row):
+            break
+        scrip = cell(row, scrip_col)
+        if scrip is None or not str(scrip).strip():
+            continue
+        if str(scrip).strip().lower() in ("grand total", "total"):
+            break
+        try:
+            price = float(cell(row, price_col))
+            qty   = float(cell(row, qty_col))
+        except (TypeError, ValueError):
+            continue
+        if price <= 0 or qty <= 0:
+            continue
+        out.append({
+            "scripName": str(scrip).strip(),
+            "buyPrice":  round(price, 4),
+            "quantity":  qty,
+            "buyValue":  round(price * qty, 2),
+        })
+    return out
+
+
+@router.post("/api/preview-holdings-upload-simple")
+async def preview_holdings_upload_simple(request: Request, basketKey: str = Form(...), file: UploadFile = File(...)):
+    """Parse the simple SCRIP/BUY PRICE/QUANTITY format for a specific,
+    already-chosen client, WITHOUT writing anything. Allocation % is computed
+    against that client's Total Capital so the admin can see upfront whether
+    the file under- or over-shoots it before confirming."""
+    _require_admin(request)
+    basket_key = basketKey.strip()
+    if basket_key not in BASKET_DISPLAY_NAMES:
+        raise HTTPException(400, f"Unknown basket: {basket_key}")
+
+    fname = (file.filename or "").lower()
+    if not fname.endswith((".xlsx", ".xls")):
+        raise HTTPException(400, "Only .xlsx/.xls files are supported.")
+
+    raw = await file.read()
+    try:
+        wb = openpyxl.load_workbook(io.BytesIO(raw), data_only=True)
+    except Exception:
+        raise HTTPException(400, "Could not read this file as an Excel workbook.")
+
+    ws = wb.worksheets[0]
+    rows = list(ws.iter_rows(values_only=True))
+    wb.close()
+
+    parsed = _parse_simple_holdings_sheet(rows)
+    if not parsed:
+        raise HTTPException(400, "Could not find a SCRIP / BUY PRICE / QUANTITY table in this file.")
+
+    bp_data = _load_buy_price_data()
+    nse_symbols = await _fetch_nse_symbols()
+
+    holdings = []
+    for row in parsed:
+        code = _resolve_scrip_to_code(row["scripName"], basket_key, bp_data, nse_symbols)
+        holdings.append({**row, "nseCode": code})
+
+    file_total = round(sum(h["buyValue"] for h in holdings), 2)
+    total_capital = (_load_client_capital() or {}).get(basket_key)
+    for h in holdings:
+        h["allocationPct"] = round(h["buyValue"] / total_capital * 100, 4) if total_capital else None
+
+    return {
+        "basketKey":    basket_key,
+        "basketLabel":  BASKET_DISPLAY_NAMES.get(basket_key),
+        "holdings":     holdings,
+        "fileTotal":    file_total,
+        "totalCapital": total_capital,
+        "overCapital":  bool(total_capital and file_total > total_capital),
+        "filename":     file.filename,
+    }
+
+
+@router.post("/api/confirm-holdings-upload-simple")
+async def confirm_holdings_upload_simple(request: Request, body: dict = Body(...)):
+    """Applies a previewed simple-format upload: REPLACES the target client's
+    stock list with the uploaded holdings, allocation computed against their
+    Total Capital -- the unfilled remainder becomes Cash automatically via
+    _save_portfolios' existing auto-top-up, same as any other save."""
+    admin_email = _require_admin(request)
+
+    basket_key = (body.get("basketKey") or "").strip()
+    holdings   = body.get("holdings") or []
+    filename   = body.get("filename", "")
+
+    if basket_key not in BASKET_DISPLAY_NAMES:
+        raise HTTPException(400, f"Unknown basket: {basket_key}")
+    if not holdings:
+        raise HTTPException(400, "No holdings to upload.")
+
+    total_capital = (_load_client_capital() or {}).get(basket_key)
+    if not total_capital:
+        raise HTTPException(400, "This client's Total Capital isn't set yet -- set it on the All Clients page first, then upload holdings.")
+
+    stocks = []
+    for h in holdings:
+        nse = (h.get("nseCode") or "").strip().upper()
+        buy_value = h.get("buyValue")
+        buy_price = h.get("buyPrice")
+        if not nse or buy_value is None or buy_price is None:
+            continue
+        stocks.append({
+            "nseCode":    nse,
+            "allocation": round(float(buy_value) / total_capital, 6),
+            "buyPrice":   round(float(buy_price), 4),
+        })
+    if not stocks:
+        raise HTTPException(400, "No valid stocks in the uploaded holdings.")
+
+    total_alloc = sum(s["allocation"] for s in stocks)
+    if total_alloc > 1.001:
+        raise HTTPException(
+            400,
+            f"These holdings total {total_alloc * 100:.1f}% of this client's Total Capital, over 100%. "
+            f"Update their Total Capital first, or check the file for an error.",
+        )
+
+    _auto_save_rollback()
+    _push_undo_snapshot(basket_key, label=f"Holdings upload ({filename or 'simple format'})")
+
+    portfolios = _load_portfolios()
+    portfolios[basket_key] = stocks
+    _save_portfolios(portfolios)
+
+    _log_activity("holdings_upload_simple", admin_email, {
+        "basket": basket_key, "stockCount": len(stocks), "filename": filename,
+    })
+
+    return {
+        "ok":          True,
+        "basketKey":   basket_key,
+        "basketLabel": BASKET_DISPLAY_NAMES.get(basket_key, basket_key),
+        "count":       len(stocks),
+        "cashPct":     round((1 - total_alloc) * 100, 2),
     }

@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
-import { addClient, renameClient, deleteClient, setClientCapital, fetchClientsSummary, fetchBasket, fetchLiveData } from '../api/client.js';
+import { addClient, renameClient, deleteClient, setClientCapital, fetchClientsSummary, fetchBasket, fetchLiveData, previewHoldingsUploadSimple } from '../api/client.js';
 import { calcAbsoluteReturns, calcHoldingDaysWithBuyDateFallback, calcPerformance, calcContribution } from '../App.jsx';
 import ConfirmModal from './ConfirmModal.jsx';
+import SimpleHoldingsUploadModal from './SimpleHoldingsUploadModal.jsx';
 import { isAdmin as _getIsAdmin } from '../utils/adminState.js';
 import { displayNseCode } from '../utils/stockDisplay.js';
 
@@ -39,6 +40,9 @@ export default function AllClientsPage() {
   const [deleteTarget,  setDeleteTarget]  = useState(null);   // row pending delete confirmation
   const [selectedKeys,  setSelectedKeys]  = useState(new Set());
   const [exporting,     setExporting]     = useState(false);
+  const [uploadTarget,  setUploadTarget]  = useState(null);   // row currently uploading holdings for
+  const [uploadPreview, setUploadPreview] = useState(null);   // preview response, or null
+  const holdingsFileRef = useRef(null);
 
   const refresh = () => {
     setLoading(true);
@@ -64,6 +68,31 @@ export default function AllClientsPage() {
     } finally {
       setAddingClient(false);
     }
+  };
+
+  const handleUploadHoldingsClick = (row) => {
+    setUploadTarget(row);
+    holdingsFileRef.current?.click();
+  };
+
+  const handleHoldingsFileSelected = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !uploadTarget) return;
+    try {
+      const data = await previewHoldingsUploadSimple(uploadTarget.key, file);
+      setUploadPreview(data);
+    } catch (err) {
+      window.alert(err.message || 'Could not read this file.');
+      setUploadTarget(null);
+    }
+  };
+
+  const handleHoldingsConfirmed = () => {
+    setUploadPreview(null);
+    setUploadTarget(null);
+    refresh();
+    flash('Holdings uploaded!');
   };
 
   const openEdit = (row) => {
@@ -260,6 +289,21 @@ export default function AllClientsPage() {
         />
       )}
 
+      <input
+        ref={holdingsFileRef}
+        type="file"
+        accept=".xlsx,.xls"
+        style={{ display: 'none' }}
+        onChange={handleHoldingsFileSelected}
+      />
+      {uploadPreview && (
+        <SimpleHoldingsUploadModal
+          previewData={uploadPreview}
+          onClose={() => { setUploadPreview(null); setUploadTarget(null); }}
+          onConfirmed={handleHoldingsConfirmed}
+        />
+      )}
+
       <div className="bp-page">
         <div className="bp-page-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -350,7 +394,10 @@ export default function AllClientsPage() {
                     <td className="bp-action-cell">
                       {userIsAdmin && (
                         <>
-                          <button className="bp-row-btn bp-row-add" title="Edit client" onClick={() => openEdit(row)}>
+                          <button className="bp-row-btn bp-row-add" title="Upload holdings for this client" onClick={() => handleUploadHoldingsClick(row)}>
+                            <i className="fa-solid fa-file-import" style={{ fontSize: '0.7em' }} />
+                          </button>
+                          <button className="bp-row-btn bp-row-add" title="Edit client" onClick={() => openEdit(row)} style={{ marginLeft: '4px' }}>
                             <i className="fa-solid fa-pen" style={{ fontSize: '0.7em' }} />
                           </button>
                           <button className="bp-row-btn bp-row-remove" title="Delete client" onClick={() => setDeleteTarget(row)} style={{ marginLeft: '4px' }}>

@@ -38,6 +38,24 @@ export const fetchOhlcLookup = (nse, date) =>
   fetch(`${BASE}/ohlc-lookup/${encodeURIComponent(nse)}?date=${encodeURIComponent(date)}`).then(r => r.json());
 export const fetchCaStatus = (basket, code) =>
   fetch(`${BASE}/corporate-actions/status/${encodeURIComponent(basket)}/${encodeURIComponent(code)}`).then(r => r.json());
+
+// ── Simple-format holdings upload (SCRIP/BUY PRICE/QUANTITY, per-client) ────
+export const previewHoldingsUploadSimple = (basketKey, file) => {
+  const form = new FormData();
+  form.append('basketKey', basketKey);
+  form.append('file', file);
+  const token = getAuthToken();
+  return fetch(`${BASE}/preview-holdings-upload-simple`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: form,
+  }).then(_asJson);
+};
+export const confirmHoldingsUploadSimple = (payload) =>
+  fetch(`${BASE}/confirm-holdings-upload-simple`, {
+    method: 'POST', headers: _authHeaders(),
+    body: JSON.stringify(payload),
+  }).then(_asJson);
 export const fetchRebalanceSummary = (basket) =>
   fetch(`${BASE}/rebalance-summary/${encodeURIComponent(basket)}`).then(r => r.json());
 
