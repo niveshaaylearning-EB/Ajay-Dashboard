@@ -435,6 +435,27 @@ def _ocr_word_to_number(text: str):
         return None
 
 
+def _merge_split_number_fragments(texts: list[str]) -> list[str]:
+    """A large comma-grouped number can get OCR'd as two separate words when
+    there's a tiny gap mid-number (confirmed on a real statement: "99,12,764"
+    came back as two tokens, "99,12," and "764|") -- a token whose digits/
+    commas end in a bare trailing comma is almost certainly the first half
+    of one of these, so glue it to the next token before anything else
+    runs. Otherwise the extra token shifts every later column one slot out
+    of position, same failure mode a dropped unparseable token causes."""
+    merged, i = [], 0
+    while i < len(texts):
+        t = texts[i]
+        digits_commas = re.sub(r"[^\d,]", "", t)
+        if digits_commas.endswith(",") and i + 1 < len(texts):
+            merged.append(t + texts[i + 1])
+            i += 2
+        else:
+            merged.append(t)
+            i += 1
+    return merged
+
+
 def _ocr_image_to_simple_rows(raw: bytes) -> list[dict]:
     """No real table structure to read at all -- OCRs every word with its
     pixel position, groups words into rows using Tesseract's OWN line
@@ -474,22 +495,29 @@ def _ocr_image_to_simple_rows(raw: bytes) -> list[dict]:
 
     out = []
     for row in rows[header_idx + 1:]:
-        texts = [w["text"] for w in row]
+        texts = _merge_split_number_fragments([w["text"] for w in row])
         joined = " ".join(texts).strip().lower()
         if joined.startswith("grand total") or joined.startswith("total"):
             break
-        name_tokens, numbers = [], []
-        for t in texts:
-            n = _ocr_word_to_number(t)
-            if n is not None:
-                numbers.append(n)
-            elif not numbers:   # still in the leading name portion
-                name_tokens.append(t)
-        if not name_tokens or len(numbers) < 3:
+        # Column order is fixed (BUY PRICE, MARKET PRICE, QUANTITY, BUY
+        # VALUE, MARKET VALUE) -- take the trailing 5 tokens AS those
+        # columns BY POSITION, not by "does this one happen to parse as a
+        # number". Scanning for validity and skipping whatever doesn't
+        # parse (the previous approach) silently drops a misread token
+        # instead of keeping its slot, which shifts every later column
+        # left by one -- confirmed on a real statement: a single garbled
+        # "774" -> "77A" made quantity read as that row's BUY VALUE
+        # instead, off by a factor of ~1000. A position that still fails
+        # to parse here becomes 0 -- visibly wrong and still editable in
+        # the preview, rather than silently dropping the whole row (worse:
+        # a real holding missing from the upload with no indication why).
+        if len(texts) < 6:
             continue
-        price, qty = numbers[0], numbers[2]
-        if price <= 0 or qty <= 0:
+        name_tokens, number_tokens = texts[:-5], texts[-5:]
+        if not name_tokens:
             continue
+        price = _ocr_word_to_number(number_tokens[0]) or 0
+        qty   = _ocr_word_to_number(number_tokens[2]) or 0
         out.append({
             "scripName": " ".join(name_tokens).strip(),
             "buyPrice":  round(price, 4),

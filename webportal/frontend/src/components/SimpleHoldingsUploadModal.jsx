@@ -20,7 +20,11 @@ export default function SimpleHoldingsUploadModal({ previewData, onClose, onConf
 
   const hasTotalCapital = previewData.totalCapital != null;
   const totalAllocPct = holdings.reduce((s, h) => s + (h.allocationPct || 0), 0);
-  const canConfirm = hasTotalCapital && totalAllocPct <= 100.1 && holdings.every(h => h.nseCode);
+  // A 0 buy price/quantity means that specific field genuinely failed to
+  // read (OCR misread a digit as a letter, for instance) -- block confirming
+  // until it's corrected rather than silently writing a 0 into real data.
+  const hasZeroField = holdings.some(h => !h.buyPrice || !h.quantity);
+  const canConfirm = hasTotalCapital && totalAllocPct <= 100.1 && !hasZeroField && holdings.every(h => h.nseCode);
 
   const updateCode = (idx, val) => {
     setHoldings(prev => prev.map((h, i) => i === idx ? { ...h, nseCode: val } : h));
@@ -159,16 +163,22 @@ export default function SimpleHoldingsUploadModal({ previewData, onClose, onConf
                     <input
                       type="number" value={h.quantity}
                       onChange={e => updateNumber(i, 'quantity', e.target.value)}
-                      style={{ width: '6rem', background: 'var(--input-bg)', color: 'var(--text-primary)',
-                               border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.2rem 0.4rem' }}
+                      title={!h.quantity ? 'Could not read this value -- enter it manually' : undefined}
+                      style={{ width: '6rem', background: 'var(--input-bg)',
+                               color: h.quantity ? 'var(--text-primary)' : 'var(--accent-red)',
+                               border: `1px solid ${h.quantity ? 'var(--border-color)' : 'var(--accent-red)'}`,
+                               borderRadius: '6px', padding: '0.2rem 0.4rem' }}
                     />
                   </td>
                   <td style={cellStyle}>
                     <input
                       type="number" value={h.buyPrice}
                       onChange={e => updateNumber(i, 'buyPrice', e.target.value)}
-                      style={{ width: '6.5rem', background: 'var(--input-bg)', color: 'var(--text-primary)',
-                               border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.2rem 0.4rem' }}
+                      title={!h.buyPrice ? 'Could not read this value -- enter it manually' : undefined}
+                      style={{ width: '6.5rem', background: 'var(--input-bg)',
+                               color: h.buyPrice ? 'var(--text-primary)' : 'var(--accent-red)',
+                               border: `1px solid ${h.buyPrice ? 'var(--border-color)' : 'var(--accent-red)'}`,
+                               borderRadius: '6px', padding: '0.2rem 0.4rem' }}
                     />
                   </td>
                   <td style={cellStyle}>{fmtRupee(h.buyValue)}</td>
