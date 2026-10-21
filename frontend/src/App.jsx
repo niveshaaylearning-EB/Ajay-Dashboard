@@ -82,7 +82,7 @@ function Header() {
   return (
     <header className="main-header">
       <Link to="/" style={{ textDecoration: 'none' }}>
-        <h1 className="text-gradient" style={{ margin: 0, fontSize: '1.8rem' }}>Caskwook Capital</h1>
+        <h1 className="text-gradient" style={{ margin: 0, fontSize: '1.8rem' }}>Caskwood Capital</h1>
       </Link>
       <nav className="main-header-nav">
         <Link to="/" className="btn btn-secondary">Home</Link>

@@ -1,5 +1,5 @@
 """
-Caskwook Capital — single-window launcher.
+Caskwood Capital — single-window launcher.
 Runs:  frontend build  →  webportal backend (:8101)  →  main backend (:8100)
 All output is prefixed and shown in this window.
 Press Ctrl+C to stop everything.

@@ -1,6 +1,6 @@
-# Caskwook Capital — Cloud Deployment Guide
+# Caskwood Capital — Cloud Deployment Guide
 
-This guide details how to configure, build, and deploy the Caskwook Capital application on cloud environments (e.g., Render, AWS, Heroku, Fly.io, or in a Docker container).
+This guide details how to configure, build, and deploy the Caskwood Capital application on cloud environments (e.g., Render, AWS, Heroku, Fly.io, or in a Docker container).
 
 ---
 

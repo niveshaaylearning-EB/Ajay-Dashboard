@@ -1,5 +1,5 @@
 """
-FastAPI backend for Caskwook Capital.
+FastAPI backend for Caskwood Capital.
 # v3 — history derived from buy/sell events
 
 Live data sources:
