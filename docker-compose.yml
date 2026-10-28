@@ -15,14 +15,35 @@ services:
     environment:
       - IS_DOCKER_LOCAL=true
     volumes:
-      # Persist database and data files outside the container
+      # Persist database and EVERY durability JSON file outside the container --
+      # the Dockerfile's `COPY backend/` / `COPY webportal/backend/` steps bake
+      # whatever's git-committed into the image on every build, so any file NOT
+      # listed here gets silently reset to that stale snapshot on redeploy,
+      # discarding live edits made since the last git sync. Keep this list in
+      # sync with /api/admin/export-data's file list (main.py) -- that endpoint
+      # is the audit of what actually needs durability.
       - ./backend/portfolio.db:/app/backend/portfolio.db
       - ./backend/historic_cache.json:/app/backend/historic_cache.json
       - ./backend/results_calendar_cache.json:/app/backend/results_calendar_cache.json
+      - ./backend/allowed_emails_data.json:/app/backend/allowed_emails_data.json
+      - ./backend/login_history.json:/app/backend/login_history.json
+      - ./backend/audit_log.json:/app/backend/audit_log.json
+      - ./backend/stock_events.json:/app/backend/stock_events.json
+      - ./backend/simulation_mods.json:/app/backend/simulation_mods.json
+      - ./backend/simulation_sips.json:/app/backend/simulation_sips.json
       - ./webportal/backend/portfolios.json:/app/webportal/backend/portfolios.json
       - ./webportal/backend/historical_index.json:/app/webportal/backend/historical_index.json
       - ./webportal/backend/rebalance_history.json:/app/webportal/backend/rebalance_history.json
       - ./webportal/backend/buy_price_data.json:/app/webportal/backend/buy_price_data.json
+      - ./webportal/backend/watchlist.json:/app/webportal/backend/watchlist.json
+      - ./webportal/backend/corporate_actions.json:/app/webportal/backend/corporate_actions.json
+      - ./webportal/backend/gains_statement.json:/app/webportal/backend/gains_statement.json
+      - ./webportal/backend/clients.json:/app/webportal/backend/clients.json
+      - ./webportal/backend/client_id_map.json:/app/webportal/backend/client_id_map.json
+      - ./webportal/backend/client_capital.json:/app/webportal/backend/client_capital.json
+      - ./webportal/backend/undo_snapshots.json:/app/webportal/backend/undo_snapshots.json
+      - ./webportal/backend/activity_log.json:/app/webportal/backend/activity_log.json
+      - ./webportal/backend/rollback_points.json:/app/webportal/backend/rollback_points.json
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=5)"]
       interval: 30s

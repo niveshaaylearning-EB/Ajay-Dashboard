@@ -1,81 +1,9 @@
 [
   {
-    "user_email": "testuser.outlookcheck@outlook.com",
-    "event_type": "registration_requested",
-    "details": "Test Outlook requested access",
-    "created_at": "2026-10-28T04:41:32.141624",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
-    "user_email": "testuser.gmailcheck@gmail.com",
-    "event_type": "registration_requested",
-    "details": "Test Gmail requested access",
-    "created_at": "2026-10-28T04:41:22.562066",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
     "user_email": "jay.chaudhari@niveshaay.com",
     "event_type": "otp_requested",
     "details": "Login OTP requested",
-    "created_at": "2026-10-21T10:33:53.373584",
-    "ip_address": "10.11.0.26",
-    "location": null
-  },
-  {
-    "user_email": "ajay.surya@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-10-21T15:00:31.097900",
-    "ip_address": "10.11.0.26",
-    "location": null
-  },
-  {
-    "user_email": "raj.agrawal@niveshaay.com",
-    "event_type": "registration_requested",
-    "details": "Raj Agrawal requested access",
-    "created_at": "2026-10-27T08:27:11.007816",
-    "ip_address": "10.11.0.26",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-10-27T08:27:46.591967",
-    "ip_address": "10.11.0.26",
-    "location": null
-  },
-  {
-    "user_email": "ajay.surya@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-10-27T08:27:56.019445",
-    "ip_address": "10.11.0.26",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "admin_approved_user",
-    "details": "Approved registration for raj.agrawal@niveshaay.com",
-    "created_at": "2026-10-27T08:28:13.291397",
-    "ip_address": null,
-    "location": null
-  },
-  {
-    "user_email": "raj.agrawal@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-10-27T08:33:02.341919",
-    "ip_address": "10.11.0.26",
-    "location": null
-  },
-  {
-    "user_email": "ajay.surya@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-10-27T09:00:22.689632",
+    "created_at": "2026-10-28T05:03:25.818929",
     "ip_address": "10.11.0.26",
     "location": null
   },
@@ -88,10 +16,74 @@
     "location": null
   },
   {
+    "user_email": "ajay.surya@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-10-27T09:00:22.689632",
+    "ip_address": "10.11.0.26",
+    "location": null
+  },
+  {
+    "user_email": "raj.agrawal@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-10-27T08:33:02.341919",
+    "ip_address": "10.11.0.26",
+    "location": null
+  },
+  {
+    "user_email": "jay.chaudhari@niveshaay.com",
+    "event_type": "admin_approved_user",
+    "details": "Approved registration for raj.agrawal@niveshaay.com",
+    "created_at": "2026-10-27T08:28:13.291397",
+    "ip_address": null,
+    "location": null
+  },
+  {
+    "user_email": "ajay.surya@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-10-27T08:27:56.019445",
+    "ip_address": "10.11.0.26",
+    "location": null
+  },
+  {
     "user_email": "jay.chaudhari@niveshaay.com",
     "event_type": "otp_requested",
     "details": "Login OTP requested",
-    "created_at": "2026-10-21T07:44:21.508748",
+    "created_at": "2026-10-27T08:27:46.591967",
+    "ip_address": "10.11.0.26",
+    "location": null
+  },
+  {
+    "user_email": "raj.agrawal@niveshaay.com",
+    "event_type": "registration_requested",
+    "details": "Raj Agrawal requested access",
+    "created_at": "2026-10-27T08:27:11.007816",
+    "ip_address": "10.11.0.26",
+    "location": null
+  },
+  {
+    "user_email": "ajay.surya@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-10-21T15:00:31.097900",
+    "ip_address": "10.11.0.26",
+    "location": null
+  },
+  {
+    "user_email": "jay.chaudhari@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-10-21T10:33:53.373584",
+    "ip_address": "10.11.0.26",
+    "location": null
+  },
+  {
+    "user_email": "jay.chaudhari@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-08-14T10:57:00.816244",
     "ip_address": "127.0.0.1",
     "location": null
   },
@@ -99,7 +91,7 @@
     "user_email": "jay.chaudhari@niveshaay.com",
     "event_type": "otp_requested",
     "details": "Login OTP requested",
-    "created_at": "2026-10-21T07:38:39.805630",
+    "created_at": "2026-08-26T11:37:34.157127",
     "ip_address": "127.0.0.1",
     "location": null
   },
@@ -107,7 +99,7 @@
     "user_email": "jay.chaudhari@niveshaay.com",
     "event_type": "otp_requested",
     "details": "Login OTP requested",
-    "created_at": "2026-10-19T11:30:34.807088",
+    "created_at": "2026-08-26T12:07:30.982216",
     "ip_address": "127.0.0.1",
     "location": null
   },
@@ -115,7 +107,7 @@
     "user_email": "jay.chaudhari@niveshaay.com",
     "event_type": "otp_requested",
     "details": "Login OTP requested",
-    "created_at": "2026-10-19T10:00:47.046828",
+    "created_at": "2026-08-27T05:46:18.922838",
     "ip_address": "127.0.0.1",
     "location": null
   },
@@ -123,7 +115,7 @@
     "user_email": "jay.chaudhari@niveshaay.com",
     "event_type": "otp_requested",
     "details": "Login OTP requested",
-    "created_at": "2026-10-16T08:41:56.141784",
+    "created_at": "2026-08-27T05:56:19.174704",
     "ip_address": "127.0.0.1",
     "location": null
   },
@@ -131,7 +123,15 @@
     "user_email": "jay.chaudhari@niveshaay.com",
     "event_type": "otp_requested",
     "details": "Login OTP requested",
-    "created_at": "2026-10-16T08:37:04.869926",
+    "created_at": "2026-08-31T08:45:37.184151",
+    "ip_address": "127.0.0.1",
+    "location": null
+  },
+  {
+    "user_email": "jay.chaudhari@niveshaay.com",
+    "event_type": "otp_requested",
+    "details": "Login OTP requested",
+    "created_at": "2026-09-02T10:56:10.417002",
     "ip_address": "127.0.0.1",
     "location": null
   },
@@ -157,238 +157,6 @@
     "details": "Login OTP requested",
     "created_at": "2026-10-16T06:28:00.806078",
     "ip_address": "10.11.0.26",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "email_admin_promoted",
-    "details": "Promoted ajay.surya@niveshaay.com to admin",
-    "created_at": "2026-09-21T07:31:05.869751",
-    "ip_address": null,
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-09-21T06:31:59.248482",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "logout",
-    "details": null,
-    "created_at": "2026-09-21T06:27:46.797469",
-    "ip_address": "127.0.0.1",
-    "location": "Local"
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "logout",
-    "details": null,
-    "created_at": "2026-09-21T06:27:46.825960",
-    "ip_address": "127.0.0.1",
-    "location": "Local"
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "logout",
-    "details": null,
-    "created_at": "2026-09-21T06:27:46.797469",
-    "ip_address": "127.0.0.1",
-    "location": "Local"
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "logout",
-    "details": null,
-    "created_at": "2026-09-21T06:27:46.797469",
-    "ip_address": "127.0.0.1",
-    "location": "Local"
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "logout",
-    "details": null,
-    "created_at": "2026-09-21T06:27:46.797469",
-    "ip_address": "127.0.0.1",
-    "location": "Local"
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "logout",
-    "details": null,
-    "created_at": "2026-09-21T06:27:46.796170",
-    "ip_address": "127.0.0.1",
-    "location": "Local"
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "logout",
-    "details": null,
-    "created_at": "2026-09-21T06:27:46.713290",
-    "ip_address": "127.0.0.1",
-    "location": "Local"
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "logout",
-    "details": null,
-    "created_at": "2026-09-21T06:27:46.737032",
-    "ip_address": "127.0.0.1",
-    "location": "Local"
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "logout",
-    "details": null,
-    "created_at": "2026-09-21T06:27:46.737032",
-    "ip_address": "127.0.0.1",
-    "location": "Local"
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "logout",
-    "details": null,
-    "created_at": "2026-09-21T06:27:46.737032",
-    "ip_address": "127.0.0.1",
-    "location": "Local"
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "logout",
-    "details": null,
-    "created_at": "2026-09-21T06:27:46.737032",
-    "ip_address": "127.0.0.1",
-    "location": "Local"
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "logout",
-    "details": null,
-    "created_at": "2026-09-21T06:27:46.713290",
-    "ip_address": "127.0.0.1",
-    "location": "Local"
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-09-21T06:26:21.937944",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "email_removed",
-    "details": "Removed allowed email: pari.patel@niveshaay.com",
-    "created_at": "2026-09-19T07:00:47.123096",
-    "ip_address": null,
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "email_admin_demoted",
-    "details": "Demoted pari.patel@niveshaay.com from admin",
-    "created_at": "2026-09-19T07:00:45.694401",
-    "ip_address": null,
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "email_admin_promoted",
-    "details": "Promoted pari.patel@niveshaay.com to admin",
-    "created_at": "2026-09-19T07:00:43.752034",
-    "ip_address": null,
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "email_added",
-    "details": "Added allowed email: pari.patel@niveshaay.com",
-    "created_at": "2026-09-19T07:00:39.929581",
-    "ip_address": null,
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-09-19T06:03:28.747252",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-09-09T12:15:52.359283",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-09-09T05:43:27.939478",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-09-02T10:56:10.417002",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-08-31T08:45:37.184151",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-08-27T05:56:19.174704",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-08-27T05:46:18.922838",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-08-26T12:07:30.982216",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-08-26T11:37:34.157127",
-    "ip_address": "127.0.0.1",
-    "location": null
-  },
-  {
-    "user_email": "jay.chaudhari@niveshaay.com",
-    "event_type": "otp_requested",
-    "details": "Login OTP requested",
-    "created_at": "2026-08-14T10:57:00.816244",
-    "ip_address": "127.0.0.1",
     "location": null
   }
 ]
