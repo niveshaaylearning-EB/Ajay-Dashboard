@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { getEmail, getToken, isAdmin } from '../utils/auth.js';
+import { getEmail, getToken, isAdmin, syncAdminStatus, ADMIN_STATUS_CHANGE_EVENT } from '../utils/auth.js';
 import { getTheme, setTheme, THEME_CHANGE_EVENT } from '../utils/theme.js';
 
 const BAR_H = 44;
@@ -17,11 +17,26 @@ export default function ActualPortfolio() {
   const navigate = useNavigate();
   const [headerBottom, setHeaderBottom] = useState(120);
   const [loaded, setLoaded] = useState(false);
+  const [canEdit, setCanEdit] = useState(isAdmin());
   const iframeRef = useRef(null);
 
   useEffect(() => {
     const header = document.querySelector('header');
     if (header) setHeaderBottom(Math.ceil(header.getBoundingClientRect().bottom));
+  }, []);
+
+  // isAdmin() only reflects whatever was cached at last sync -- a promotion
+  // that happens mid-session (no fresh login, no full page reload) would
+  // otherwise leave this page's iframe permanently baked with edit=0, since
+  // the iframe's `src` never changes on its own once mounted. Re-check on
+  // mount (covers navigating here right after being promoted elsewhere in
+  // the same session) and react live to ADMIN_STATUS_CHANGE_EVENT so the
+  // iframe actually reloads with the correct edit flag the moment it fires.
+  useEffect(() => {
+    syncAdminStatus().then(() => setCanEdit(isAdmin()));
+    const onAdminChange = () => setCanEdit(isAdmin());
+    window.addEventListener(ADMIN_STATUS_CHANGE_EVENT, onAdminChange);
+    return () => window.removeEventListener(ADMIN_STATUS_CHANGE_EVENT, onAdminChange);
   }, []);
 
   // Keep the embedded webportal iframe's theme live-synced with the outer
@@ -49,7 +64,6 @@ export default function ActualPortfolio() {
 
   const iframeTop = headerBottom + BAR_H;
   const email     = getEmail() || '';
-  const canEdit   = isAdmin();
   // Pass the auth token through the URL too, not just email/edit flags: in
   // local dev the iframe loads from a different origin (port 8001), so it
   // can't read the main app's localStorage token at all. Without this, admin
