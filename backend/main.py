@@ -272,6 +272,7 @@ def _dump_allowed_emails(db, raise_on_error: bool = False):
         "password_hash": r.password_hash,
         "is_approved":   r.is_approved if r.is_approved is not None else 1,
         "is_admin":      r.is_admin if r.is_admin is not None else 0,
+        "whatsapp_phone": r.whatsapp_phone,
     } for r in rows]
     _save_json_push(_ALLOWED_EMAIL_FILE, data, sync=True, raise_on_error=raise_on_error)
 
@@ -700,7 +701,8 @@ def admin_export_data(request: Request, db: Session = Depends(get_db)):
                  "backup_codes": r.backup_codes, "first_name": r.first_name,
                  "last_name": r.last_name, "password_hash": r.password_hash,
                  "is_approved": r.is_approved if r.is_approved is not None else 1,
-                 "is_admin": r.is_admin if r.is_admin is not None else 0}
+                 "is_admin": r.is_admin if r.is_admin is not None else 0,
+                 "whatsapp_phone": r.whatsapp_phone}
                 for r in rows]
 
     def _login_history_data(db_):
@@ -808,7 +810,8 @@ def admin_sync_to_github(request: Request, db: Session = Depends(get_db)):
                  "backup_codes": r.backup_codes, "first_name": r.first_name,
                  "last_name": r.last_name, "password_hash": r.password_hash,
                  "is_approved": r.is_approved if r.is_approved is not None else 1,
-                 "is_admin": r.is_admin if r.is_admin is not None else 0}
+                 "is_admin": r.is_admin if r.is_admin is not None else 0,
+                 "whatsapp_phone": r.whatsapp_phone}
                 for r in rows]
 
     def _login_history_data(db_):
@@ -989,7 +992,8 @@ def list_allowed_emails(request: Request, db: Session = Depends(get_db)):
     rows = db.query(database.AllowedEmail).order_by(database.AllowedEmail.added_at.desc()).all()
     return [{"email": r.email, "added_by": r.added_by, "added_at": r.added_at,
              "is_approved": bool(r.is_approved),
-             "is_admin": is_admin_email(r.email)} for r in rows]
+             "is_admin": is_admin_email(r.email),
+             "whatsapp_phone": r.whatsapp_phone} for r in rows]
 
 @app.post("/api/allowed-emails")
 def add_allowed_email(body: AllowedEmailBody, request: Request, db: Session = Depends(get_db)):

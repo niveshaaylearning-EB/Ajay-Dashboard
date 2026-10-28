@@ -91,8 +91,8 @@ export default function LoginPage() {
       const res = await axios.post(`${API}/auth/login`, { email: em });
       setLoginOtp('');
       go('otp');
-      if (res.data?.code) setHint(`Email delivery failed. Your code: ${res.data.code}`);
-      else setSuccess(`A login code has been sent to ${em}.`);
+      if (res.data?.code) setHint(`Delivery failed. Your code: ${res.data.code}`);
+      else setSuccess(res.data?.message || `A login code has been sent to ${em}.`);
     } catch (err) {
       const det = err.response?.data?.detail;
       setError(typeof det === 'string' ? det : det?.[0]?.msg || 'Failed to send code. Please try again.');

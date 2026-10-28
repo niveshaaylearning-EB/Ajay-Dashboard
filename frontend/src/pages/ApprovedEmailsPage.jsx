@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Users, UserPlus, Trash2, User, Clock, CheckCircle, XCircle, ShieldPlus, ShieldMinus } from 'lucide-react';
+import { ArrowLeft, Users, UserPlus, Trash2, User, Clock, CheckCircle, XCircle, ShieldPlus, ShieldMinus, MessageCircle } from 'lucide-react';
 import { getToken } from '../utils/auth';
 import { API_BASE as API, API_ROOT } from '../config.js';
 
@@ -147,6 +147,28 @@ export default function ApprovedEmailsPage() {
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to update admin status');
     } finally { setTogglingAdmin(''); }
+  };
+
+  const [settingWhatsapp, setSettingWhatsapp] = useState('');
+  const handleSetWhatsapp = async (email, currentPhone) => {
+    const input = window.prompt(`WhatsApp number for ${email} (international format, e.g. +919537407484):`, currentPhone || '+91');
+    if (input == null) return; // cancelled
+    const phone = input.trim();
+    if (!phone.startsWith('+') || !/^\+\d{8,15}$/.test(phone)) {
+      window.alert('Enter a valid number in international format, e.g. +919537407484.');
+      return;
+    }
+    setError(''); setSuccess('');
+    setSettingWhatsapp(email);
+    try {
+      await axios.post(`${API_ROOT}/auth/admin/set-whatsapp-phone`, { email, phone }, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      setSuccess(`WhatsApp number set for ${email}.`);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to set WhatsApp number');
+    } finally { setSettingWhatsapp(''); }
   };
 
   const handleRemove = async (email) => {
@@ -368,9 +390,31 @@ export default function ApprovedEmailsPage() {
                       </span>
                     )}
                     {em?.added_at && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '1px' }}>Added {em.added_at.slice(0, 10)}</div>}
+                    {em?.whatsapp_phone && (
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '1px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <MessageCircle size={11} /> {em.whatsapp_phone}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => handleSetWhatsapp(emailStr, em?.whatsapp_phone)}
+                    disabled={settingWhatsapp === emailStr}
+                    title={em?.whatsapp_phone ? 'Change WhatsApp number' : 'Set WhatsApp number'}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                      padding: '5px 12px', borderRadius: '7px',
+                      border: '1px solid rgba(16,185,129,0.3)',
+                      background: 'rgba(16,185,129,0.1)',
+                      color: 'var(--positive)', fontSize: '0.78rem',
+                      cursor: settingWhatsapp === emailStr ? 'not-allowed' : 'pointer',
+                      opacity: settingWhatsapp === emailStr ? 0.5 : 1,
+                    }}
+                  >
+                    <MessageCircle size={12} />
+                    {settingWhatsapp === emailStr ? 'Saving…' : (em?.whatsapp_phone ? 'Edit WhatsApp' : 'Set WhatsApp')}
+                  </button>
                   {em?.is_approved !== false && (
                     <button
                       onClick={() => handleToggleAdmin(emailStr, !em?.is_admin)}

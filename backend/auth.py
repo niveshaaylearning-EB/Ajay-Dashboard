@@ -508,6 +508,44 @@ def send_email_otp(to_email: str, code: str):
     print(f"[EMAIL-OTP] Email sent via Outlook to {to_email}")
 
 
+# WhatsApp OTP delivery (DoubleTick) -- opt-in, alongside the existing email
+# OTP above. Reuses the same "otp_login_pf_dashboard" Authentication-category
+# template and DoubleTick account/number as the PF performance project.
+_DOUBLETICK_WABA_NUMBER = "+917859870559"
+_WHATSAPP_OTP_TEMPLATE = "otp_login_pf_dashboard"
+
+def send_whatsapp_otp(to_phone: str, code: str):
+    """Sends the login OTP via WhatsApp (DoubleTick template send). Raises on
+    failure -- callers should catch, same as send_email_otp."""
+    import requests as _req
+    key = os.environ.get("DOUBLETICK_API_KEY")
+    if not key:
+        raise RuntimeError("DOUBLETICK_API_KEY not set")
+    resp = _req.post(
+        "https://public.doubletick.io/whatsapp/message/template",
+        headers={"Authorization": key, "Content-Type": "application/json", "Accept": "application/json"},
+        json={"messages": [{
+            "from": _DOUBLETICK_WABA_NUMBER,
+            "to": to_phone,
+            "content": {
+                "templateName": _WHATSAPP_OTP_TEMPLATE,
+                "language": "en",
+                "templateData": {
+                    "body": {"placeholders": [code]},
+                    "buttons": [{"type": "URL"}],
+                },
+            },
+        }]},
+        timeout=15,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    status = (data.get("messages") or [{}])[0].get("status")
+    if status not in ("ENQUEUED", "SENT", "DELIVERED"):
+        raise RuntimeError(f"DoubleTick returned unexpected status: {data}")
+    print(f"[WHATSAPP-OTP] Sent to {to_phone}, status={status}")
+
+
 # ── FastAPI dependency ─────────────────────────────────────────────────────────
 _bearer = HTTPBearer(auto_error=False)
 
@@ -691,7 +729,115 @@ def totp_verify(body: VerifyTotpRequest,
 
 @router.get("/me")
 def me(current_user: str = Depends(get_current_user)):
-    return {"email": current_user, "is_admin": is_admin_email(current_user)}
+    from database import AllowedEmail
+    db = __import__('database').SessionLocal()
+    try:
+        user = db.query(AllowedEmail).filter_by(email=current_user).first()
+        whatsapp_phone = user.whatsapp_phone if user else None
+    finally:
+        db.close()
+    return {"email": current_user, "is_admin": is_admin_email(current_user), "whatsappPhone": whatsapp_phone}
+
+
+# ── WhatsApp number self-service (add/change, OTP-verified) ──────────────────
+# Reuses the same deterministic HMAC-OTP scheme as login (_hmac_otp), just
+# keyed by a "phone-change:<email>:<phone>" composite instead of plain email
+# -- stateless, survives restarts and multiple workers exactly like the login
+# OTP does. The OTP is sent to the NEW phone number being set, not the old
+# one, so this doubles as proof the user actually controls that number
+# before it's trusted for future login OTPs.
+
+class PhoneOtpRequest(BaseModel):
+    phone: str
+
+class PhoneOtpVerify(BaseModel):
+    phone: str
+    code: str
+
+def _otp_for_phone_change_at(email: str, phone: str, minute: int) -> str:
+    return _hmac_otp(f"phone-change:{email.lower()}:{phone}", minute)
+
+def _otp_for_phone_change(email: str, phone: str) -> str:
+    return _otp_for_phone_change_at(email, phone, int(_time.time() // 60))
+
+def _verify_phone_change_otp(email: str, phone: str, code: str, window_minutes: int = 15) -> bool:
+    minute = int(_time.time() // 60)
+    for offset in range(window_minutes + 1):
+        if _hmac_lib.compare_digest(_otp_for_phone_change_at(email, phone, minute - offset), code):
+            return True
+    return False
+
+
+@router.post("/profile/request-phone-otp")
+@_limiter.limit("5/minute")
+def request_phone_otp(request: Request, body: PhoneOtpRequest, current_user: str = Depends(get_current_user)):
+    phone = body.phone.strip()
+    if not phone.startswith("+") or not phone[1:].isdigit() or len(phone) < 8:
+        raise HTTPException(400, detail="Enter a valid phone number in international format, e.g. +919537407484.")
+    code = _otp_for_phone_change(current_user, phone)
+    try:
+        send_whatsapp_otp(phone, code)
+    except Exception as ex:
+        raise HTTPException(502, detail=f"Could not send WhatsApp OTP: {ex}")
+    return {"status": "otp_sent", "message": f"A verification code has been sent via WhatsApp to {phone}."}
+
+
+@router.post("/profile/verify-phone-otp")
+@_limiter.limit("10/minute")
+def verify_phone_otp(request: Request, body: PhoneOtpVerify, current_user: str = Depends(get_current_user)):
+    from database import AllowedEmail
+    phone = body.phone.strip()
+    if not _verify_phone_change_otp(current_user, phone, body.code.strip()):
+        raise HTTPException(400, detail="Invalid or expired code.")
+    db = __import__('database').SessionLocal()
+    try:
+        user = db.query(AllowedEmail).filter_by(email=current_user).first()
+        if not user:
+            raise HTTPException(404, detail="Account not found.")
+        user.whatsapp_phone = phone
+        db.commit()
+    finally:
+        db.close()
+    threading.Thread(target=_push_allowed_emails, daemon=True).start()
+    _log_audit(current_user, "whatsapp_number_updated", f"WhatsApp number set to {phone}", request.client.host if request.client else None)
+    return {"status": "ok", "whatsappPhone": phone}
+
+
+class AdminSetWhatsappPhone(BaseModel):
+    email: str
+    phone: str
+
+
+@router.post("/admin/set-whatsapp-phone")
+def admin_set_whatsapp_phone(
+    body: AdminSetWhatsappPhone,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(lambda: __import__('database').SessionLocal()),
+):
+    """Admin-only direct correction of a user's WhatsApp number, bypassing
+    the normal self-service OTP-verify flow (/profile/request-phone-otp +
+    /verify-phone-otp), which only the user themselves can drive with their
+    own login token. Needed when an admin already knows a user's number and
+    wants to set it for them directly from the Approved Login Emails page."""
+    if not is_admin_email(current_user):
+        raise HTTPException(403, detail="Admin only")
+    from database import AllowedEmail
+    email = body.email.lower().strip()
+    phone = body.phone.strip()
+    if not phone.startswith("+") or not phone[1:].isdigit() or len(phone) < 8:
+        raise HTTPException(400, detail="Enter a valid phone number in international format, e.g. +919537407484.")
+    user = db.query(AllowedEmail).filter_by(email=email).first()
+    if not user:
+        raise HTTPException(404, detail="User not found")
+    user.whatsapp_phone = phone
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(500, detail="DB error")
+    threading.Thread(target=_push_allowed_emails, daemon=True).start()
+    _log_audit(current_user, "admin_set_whatsapp_phone", f"Set WhatsApp number for {email} to {phone}")
+    return {"status": "ok", "email": email, "whatsappPhone": phone}
 
 
 @router.post("/logout")
@@ -1174,12 +1320,25 @@ def otp_login(request: Request, body: PasswordLoginRequest,
     except Exception as ex:
         print(f"[OTP-LOGIN] Email failed for {email}: {ex}")
 
+    # WhatsApp is a second, opt-in delivery channel (only users with a phone
+    # verified via /auth/profile/verify-phone-otp get it) -- never blocks login
+    # if it fails, email is always the fallback of record.
+    whatsapp_sent = False
+    if user.whatsapp_phone:
+        try:
+            with _cf.ThreadPoolExecutor(max_workers=1) as _pool:
+                _pool.submit(send_whatsapp_otp, user.whatsapp_phone, code).result(timeout=12)
+            whatsapp_sent = True
+        except Exception as ex:
+            print(f"[OTP-LOGIN] WhatsApp failed for {email}: {ex}")
+
+    channels = [c for c, sent in (("email", email_sent), ("WhatsApp", whatsapp_sent)) if sent]
     _log_audit(email, "otp_requested", f"Login OTP requested", ip)
     return {
         "status": "otp_sent",
         "email": email,
-        "message": f"A login code has been sent to {email}." if email_sent else f"Email failed. Code: {code}",
-        **({"code": code} if not email_sent else {}),
+        "message": f"A login code has been sent via {' and '.join(channels)}." if channels else f"Delivery failed. Code: {code}",
+        **({"code": code} if not channels else {}),
     }
 
 

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from 're
 import axios from 'axios';
 import { Sun, Moon } from 'lucide-react';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import WhatsAppOptInModal from './components/WhatsAppOptInModal.jsx';
 import { clearAllTokens, getEmail, isAdmin, getFirstName, isLoggedIn, syncAdminStatus, ADMIN_STATUS_CHANGE_EVENT } from './utils/auth.js';
 import { getTheme, toggleTheme, THEME_CHANGE_EVENT } from './utils/theme.js';
 import { API_ROOT } from './config.js';
@@ -193,6 +194,7 @@ function App() {
             } />
           </Routes>
         </Suspense>
+        <WhatsAppOptInModal />
       </div>
     </BrowserRouter>
   );
