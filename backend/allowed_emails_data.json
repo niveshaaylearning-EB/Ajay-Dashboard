@@ -50,5 +50,18 @@
     "password_hash": null,
     "is_approved": 1,
     "is_admin": 1
+  },
+  {
+    "email": "raj.agrawal@niveshaay.com",
+    "added_by": "self-registered",
+    "added_at": "2026-10-27T08:27:11.006570",
+    "totp_secret": null,
+    "totp_enabled": 0,
+    "backup_codes": null,
+    "first_name": "Raj",
+    "last_name": "Agrawal",
+    "password_hash": null,
+    "is_approved": 1,
+    "is_admin": 0
   }
 ]

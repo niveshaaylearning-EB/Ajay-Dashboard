@@ -107,8 +107,8 @@ export default function ApprovedEmailsPage() {
     e.preventDefault();
     setError(''); setSuccess('');
     const em = newEmail.toLowerCase().trim();
-    if (!em.endsWith('@niveshaay.com')) {
-      setError('Only @niveshaay.com emails allowed');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) {
+      setError('Enter a valid email address');
       return;
     }
     setAdding(true);
@@ -178,7 +178,7 @@ export default function ApprovedEmailsPage() {
             <h2 className="text-gradient" style={{ margin: 0, fontSize: '1.5rem' }}>Approved Login Emails</h2>
           </div>
           <p style={{ color: 'var(--text-muted)', margin: '4px 0 0', fontSize: '0.85rem' }}>
-            Only @niveshaay.com addresses listed here can log in to the dashboard.
+            Only addresses listed here (any email provider) can log in to the dashboard.
           </p>
         </div>
       </div>
@@ -193,7 +193,7 @@ export default function ApprovedEmailsPage() {
             type="email"
             value={newEmail}
             onChange={e => setNewEmail(e.target.value)}
-            placeholder="name@niveshaay.com"
+            placeholder="name@example.com"
             style={{
               flex: 1, padding: '10px 14px',
               borderRadius: '8px', border: '1px solid rgba(255,255,255,0.12)',

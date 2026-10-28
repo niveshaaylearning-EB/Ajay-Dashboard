@@ -82,8 +82,8 @@ export default function LoginPage() {
     e.preventDefault();
     setError(''); setHint(''); setSuccess('');
     const em = loginEmail.toLowerCase().trim();
-    if (!em.endsWith('@niveshaay.com')) {
-      setError('Only @niveshaay.com email addresses are allowed.');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) {
+      setError('Enter a valid email address.');
       return;
     }
     setLoading(true);
@@ -132,7 +132,7 @@ export default function LoginPage() {
     setError('');
     const em = regEmail.toLowerCase().trim();
     if (!regFirst.trim() || !regLast.trim()) { setError('First name and last name are required.'); return; }
-    if (!em.endsWith('@niveshaay.com')) { setError('Only @niveshaay.com email addresses are allowed.'); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { setError('Enter a valid email address.'); return; }
     setLoading(true);
     try {
       await axios.post(`${API}/auth/register`, {
@@ -182,7 +182,7 @@ export default function LoginPage() {
           <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ position: 'relative' }}>
               <Mail size={16} style={iconStyle} />
-              <input type="email" placeholder="your@niveshaay.com" value={loginEmail}
+              <input type="email" placeholder="you@example.com" value={loginEmail}
                 onChange={e => setLoginEmail(e.target.value)} required autoFocus style={inputBase} />
             </div>
             <button type="submit" disabled={loading} className="btn btn-primary"
@@ -234,7 +234,7 @@ export default function LoginPage() {
             </div>
             <div style={{ position: 'relative' }}>
               <Mail size={16} style={iconStyle} />
-              <input type="email" placeholder="your@niveshaay.com" value={regEmail}
+              <input type="email" placeholder="you@example.com" value={regEmail}
                 onChange={e => setRegEmail(e.target.value)} required autoFocus style={inputBase} />
             </div>
             <button type="submit" disabled={loading} className="btn btn-primary"

@@ -106,5 +106,12 @@
       "buyPrice": 954.3
     }
   ],
-  "Jay_Chaudhari_sold": []
+  "Jay_Chaudhari_sold": [],
+  "Aashil_Shah": [
+    {
+      "nseCode": "CASH",
+      "allocation": 1.0,
+      "buyPrice": 100.0
+    }
+  ]
 }

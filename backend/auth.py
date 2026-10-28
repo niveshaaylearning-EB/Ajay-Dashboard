@@ -145,8 +145,18 @@ _failed_logins: dict = {}
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env'))
 
 # ── Config ────────────────────────────────────────────────────────────────────
+# ALLOWED_DOMAIN is now only a *trust* boundary (auto-seeds niveshaay.com staff
+# into AllowedEmail with no approval step via /auth/direct-login) -- it no
+# longer gates who may register/log in at all. Anyone with a valid email can
+# request access via /auth/register; an admin still has to approve them
+# before they can actually log in (see is_approved on AllowedEmail).
 ALLOWED_DOMAIN = os.environ.get("ALLOWED_DOMAIN", "niveshaay.com")
 ADMIN_EMAIL    = os.environ.get("ADMIN_EMAIL",    "jay.chaudhari@niveshaay.com")
+
+_EMAIL_RE = _re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+
+def _is_valid_email(email: str) -> bool:
+    return bool(_EMAIL_RE.match(email))
 
 JWT_SECRET     = os.environ.get("JWT_SECRET")
 if not JWT_SECRET:
@@ -759,8 +769,8 @@ def request_email_otp(body: EmailOtpRequest,
         from database import AllowedEmail
         email = body.email.lower().strip()
 
-        if not email.endswith(f"@{ALLOWED_DOMAIN}"):
-            raise HTTPException(400, detail=f"Only @{ALLOWED_DOMAIN} emails allowed.")
+        if not _is_valid_email(email):
+            raise HTTPException(400, detail="Enter a valid email address.")
 
         # Admin always allowed; others must be pre-approved
         if email != ADMIN_EMAIL:
@@ -1009,8 +1019,8 @@ def register(request: Request, body: RegisterRequest,
     fn    = body.first_name.strip()
     ln    = body.last_name.strip()
 
-    if not email.endswith(f"@{ALLOWED_DOMAIN}"):
-        raise HTTPException(400, detail=f"Only @{ALLOWED_DOMAIN} email addresses are allowed.")
+    if not _is_valid_email(email):
+        raise HTTPException(400, detail="Enter a valid email address.")
     if not fn or not ln:
         raise HTTPException(400, detail="First name and last name are required.")
 
@@ -1135,8 +1145,8 @@ def otp_login(request: Request, body: PasswordLoginRequest,
     email = body.email.lower().strip()
     ip    = request.client.host if request.client else None
 
-    if not email.endswith(f"@{ALLOWED_DOMAIN}"):
-        raise HTTPException(400, detail=f"Only @{ALLOWED_DOMAIN} email addresses are allowed.")
+    if not _is_valid_email(email):
+        raise HTTPException(400, detail="Enter a valid email address.")
 
     user = db.query(AllowedEmail).filter_by(email=email).first()
     if not user:
@@ -1179,12 +1189,12 @@ def otp_login(request: Request, body: PasswordLoginRequest,
 @_limiter.limit("5/minute")
 def forgot_password(request: Request, body: ForgotPasswordRequest,
                     db: Session = Depends(lambda: __import__('database').SessionLocal())):
-    """Send OTP to reset password. Works for any registered @niveshaay.com email."""
+    """Send OTP to reset password. Works for any registered, approved email."""
     from database import AllowedEmail
     email = body.email.lower().strip()
 
-    if not email.endswith(f"@{ALLOWED_DOMAIN}"):
-        raise HTTPException(400, detail=f"Only @{ALLOWED_DOMAIN} email addresses are allowed.")
+    if not _is_valid_email(email):
+        raise HTTPException(400, detail="Enter a valid email address.")
 
     user = db.query(AllowedEmail).filter_by(email=email).first()
     if not user:

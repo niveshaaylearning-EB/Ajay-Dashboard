@@ -997,8 +997,8 @@ def add_allowed_email(body: AllowedEmailBody, request: Request, db: Session = De
     if not is_admin_email(user):
         raise HTTPException(status_code=403, detail="Admin only")
     email = body.email.lower().strip()
-    if not email.endswith("@niveshaay.com"):
-        raise HTTPException(status_code=400, detail="Only @niveshaay.com emails can be added")
+    if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
+        raise HTTPException(status_code=400, detail="Enter a valid email address")
     existing = db.query(database.AllowedEmail).filter_by(email=email).first()
     if existing:
         # A row already existing here does NOT mean the user can log in -- self-registrations

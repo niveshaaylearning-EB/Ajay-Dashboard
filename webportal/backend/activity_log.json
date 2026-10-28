@@ -1,5 +1,14 @@
 [
   {
+    "action": "add_client",
+    "user": "ajay.surya@niveshaay.com",
+    "ts": "21 Oct 2026 15:03 UTC",
+    "details": {
+      "key": "Aashil_Shah",
+      "label": "Aashil Shah"
+    }
+  },
+  {
     "action": "set_client_capital",
     "user": "jay.chaudhari@niveshaay.com",
     "ts": "19 Oct 2026 10:45 UTC",
