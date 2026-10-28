@@ -549,30 +549,6 @@ async def _startup_prewarm():
     rc_bg_thread = threading.Thread(target=_results_calendar_reminder_bg_worker, daemon=True, name="results-calendar-reminder")
     rc_bg_thread.start()
 
-    # Daily 8 AM IST WhatsApp digest to ajay.surya: every stock (any basket)
-    # whose result/corporate-action date is TODAY. Checked every 15 minutes
-    # so the 8:00-8:15 AM window is never missed; the digest function itself
-    # is dedup'd by calendar date so it only ever actually sends once a day.
-    def _daily_results_whatsapp_bg_worker():
-        from routers.results_calendar import send_daily_results_whatsapp_digest
-        _time.sleep(120)
-        while True:
-            try:
-                now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
-                if (now_ist.hour, now_ist.minute) >= (8, 0) and (now_ist.hour, now_ist.minute) < (8, 15):
-                    print("[BG] Running daily 8 AM results WhatsApp digest check...")
-                    db = database.SessionLocal()
-                    try:
-                        send_daily_results_whatsapp_digest(db)
-                    finally:
-                        db.close()
-            except Exception as bg_err:
-                print(f"[BG] Error in daily results WhatsApp digest: {bg_err}")
-            _time.sleep(15 * 60)
-
-    daily_wa_bg_thread = threading.Thread(target=_daily_results_whatsapp_bg_worker, daemon=True, name="daily-results-whatsapp")
-    daily_wa_bg_thread.start()
-
     # Hourly CMP-only refresh during NSE market hours (Mon-Fri, 9:15 AM -
     # 3:30 PM IST) -- covers both the actual portfolio (busts the webportal
     # bridge's live-price cache so the next request re-fetches instead of
