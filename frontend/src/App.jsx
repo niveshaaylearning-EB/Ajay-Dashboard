@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Sun, Moon } from 'lucide-react';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import WhatsAppOptInModal from './components/WhatsAppOptInModal.jsx';
-import { clearAllTokens, getEmail, isAdmin, getFirstName, isLoggedIn, syncAdminStatus, ADMIN_STATUS_CHANGE_EVENT } from './utils/auth.js';
+import { clearAllTokens, getEmail, getFirstName, isLoggedIn, syncAdminStatus, ADMIN_STATUS_CHANGE_EVENT } from './utils/auth.js';
 import { getTheme, toggleTheme, THEME_CHANGE_EVENT } from './utils/theme.js';
 import { API_ROOT } from './config.js';
 
@@ -97,7 +97,7 @@ function Header() {
             Calendar
           </Link>
         )}
-        {loggedIn && isAdmin() && (
+        {loggedIn && (getEmail() || '').toLowerCase().trim() === 'jay.chaudhari@niveshaay.com' && (
           <Link
             to="/admin"
             className="btn btn-secondary"
@@ -187,7 +187,7 @@ function App() {
               <ProtectedRoute><ResultCalendar /></ProtectedRoute>
             } />
             <Route path="/admin" element={
-              <ProtectedRoute adminOnly><AdminBacklog /></ProtectedRoute>
+              <ProtectedRoute allowedEmails={['jay.chaudhari@niveshaay.com']}><AdminBacklog /></ProtectedRoute>
             } />
             <Route path="/admin/simulators" element={
               <ProtectedRoute allowedEmails={['jay.chaudhari@niveshaay.com']}><AdminSimulators /></ProtectedRoute>

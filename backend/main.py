@@ -784,8 +784,8 @@ def admin_export_data(request: Request, db: Session = Depends(get_db)):
 @app.post("/api/admin/sync-to-github")
 def admin_sync_to_github(request: Request, db: Session = Depends(get_db)):
     """Force-push all JSON data to GitHub and report success/failure per file."""
-    user = getattr(request.state, "user", None)
-    if not is_admin_email(user):
+    user = (getattr(request.state, "user", None) or "").lower().strip()
+    if user != "jay.chaudhari@niveshaay.com":
         raise HTTPException(status_code=403, detail="Admin only")
 
     token = os.environ.get("GITHUB_TOKEN", "")
@@ -923,8 +923,8 @@ def admin_sync_to_github(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/api/admin/audit-log")
 def get_audit_log(request: Request, db: Session = Depends(get_db)):
-    user = getattr(request.state, "user", None)
-    if not is_admin_email(user):
+    user = (getattr(request.state, "user", None) or "").lower().strip()
+    if user != "jay.chaudhari@niveshaay.com":
         raise HTTPException(status_code=403, detail="Admin only")
 
     try:
