@@ -5,13 +5,14 @@ webportal/backend/main.py (and, on the frontend, in
 frontend/src/utils/auth.js and frontend/src/pages/ActualPortfolio.jsx).
 """
 
-# The permanent floor: these three can never be demoted/removed via the
-# "make admin" UI, no matter what the DB says -- a safety net against ever
-# locking every admin out of the app at once.
+# The permanent floor: jay.chaudhari is the master admin -- he can promote or
+# demote any other admin, but no one (including other admins) can ever demote
+# or remove him via the "make admin"/"remove" UI, no matter what the DB says.
+# nukul.madaan and nakshatra.rathi are regular (demotable) admins, same as any
+# admin promoted later -- they keep their admin status via the DB's is_admin=1
+# flag (see sync_promoted_admins at startup), not this permanent floor.
 _BASE_ADMIN_EMAILS = frozenset({
     "jay.chaudhari@niveshaay.com",
-    "nukul.madaan@niveshaay.com",
-    "nakshatra.rathi@niveshaay.com",
 })
 
 # Mutated in place (never reassigned) so every module that already did

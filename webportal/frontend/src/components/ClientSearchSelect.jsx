@@ -17,9 +17,9 @@ export default function ClientSearchSelect({ basketKey, options = [], onSelect }
 
   const current = options.find(o => o.key === basketKey);
   const q = query.trim().toLowerCase();
-  const filtered = !q ? options : options.filter(o =>
+  const filtered = (!q ? options : options.filter(o =>
     o.label.toLowerCase().includes(q) || (o.clientId || '').toLowerCase().includes(q)
-  );
+  )).slice().sort((a, b) => a.label.localeCompare(b.label));
 
   const commit = (key) => {
     setQuery('');
