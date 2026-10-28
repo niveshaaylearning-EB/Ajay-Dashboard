@@ -389,8 +389,8 @@ export default function PortfolioTable({
   avgMarketCap, medianPE,
   tenure = '1M', onTenureChange, perfByTenure,
 }) {
-  const [sortKey,   setSortKey]   = useState('allocation');
-  const [sortDir,   setSortDir]   = useState('desc');
+  const [sortKey,   setSortKey]   = useState('nseCode');
+  const [sortDir,   setSortDir]   = useState('asc');
   const [showOHLC,  setShowOHLC]  = useState(false);
   const [colFilters,  setColFilters]  = useState({});
   const [openFilter,  setOpenFilter]  = useState(null);
