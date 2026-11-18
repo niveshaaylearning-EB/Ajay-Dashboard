@@ -18,14 +18,15 @@ That simple format accepts three input types:
   .pdf       -- assumed to have a real text layer (not scanned); pdfplumber
                extracts an actual table grid, fed into the SAME row parser
                as the Excel path since the shapes match.
-  .png/.jpg/.jpeg -- no real table structure at all. If GEMINI_API_KEY is
-               set, Gemini reads the image directly and returns the table
-               as structured JSON -- far more reliable than OCR, since it
+  .png/.jpg/.jpeg -- no real table structure at all. If ANTHROPIC_API_KEY is
+               set, Claude vision reads the image directly and returns the
+               table as JSON -- far more reliable than OCR, since it
                understands the image as a whole table rather than
                reconstructing one from individual word positions. Falls
-               back to pytesseract (free, local, no API key, markedly less
+               back to Gemini (if GEMINI_API_KEY is set), then to
+               pytesseract (free, local, no API key, markedly less
                reliable -- confirmed on a real statement: character-level
-               misreads an LLM doesn't make) if the key isn't configured.
+               misreads an LLM doesn't make) if neither key is configured.
                Every field (not just the NSE code) stays editable in the
                preview before confirming either way."""
 import io
@@ -67,6 +68,13 @@ if _os.name == "nt" and not _shutil.which("tesseract"):
 # stays safe to deploy before the key exists in a given environment's .env.
 _GEMINI_API_KEY = _os.environ.get("GEMINI_API_KEY", "")
 _GEMINI_MODEL = "gemini-flash-latest"
+
+# Claude vision -- preferred over Gemini when ANTHROPIC_API_KEY is set: one
+# call per upload (admin-only, infrequent), so the postpaid cost here is a
+# few cents a month at normal usage. Falls back to Gemini, then OCR, if
+# unset or if the call fails.
+_ANTHROPIC_API_KEY = _os.environ.get("ANTHROPIC_API_KEY", "")
+_ANTHROPIC_MODEL = "claude-sonnet-5-5"
 
 
 def _find_client_id(rows) -> str | None:
@@ -565,6 +573,70 @@ def _gemini_image_to_simple_rows(raw: bytes, mime_type: str) -> list[dict]:
     ]
 
 
+def _claude_image_to_simple_rows(raw: bytes, mime_type: str) -> list[dict]:
+    """Same job as _gemini_image_to_simple_rows but via Claude vision. Asks
+    for raw JSON back in the response text (rather than relying on an
+    output_config.format/json_schema param, which isn't supported by every
+    installed SDK version) and parses that -- still no free-text/positional
+    parsing of numbers the way the pytesseract fallback needs."""
+    import base64
+    import json
+    import anthropic
+
+    client = anthropic.Anthropic(api_key=_ANTHROPIC_API_KEY)
+    prompt = (
+        "This image contains a stock holdings table with columns SCRIP, "
+        "BUY PRICE, MARKET PRICE, QUANTITY, BUY VALUE, MARKET VALUE (column "
+        "names/order may vary slightly). For every stock ROW (skip any "
+        "header row and any 'Grand Total'/'Total' summary row), extract "
+        "exactly three fields: scripName (the company name as printed in "
+        "the SCRIP column), buyPrice (the BUY PRICE column, a plain number, "
+        "no currency symbol or commas), and quantity (the QUANTITY column, "
+        "a plain number, no commas). Read every digit carefully -- these are "
+        "real financial figures that will be used as-is. Do not include the "
+        "MARKET PRICE, BUY VALUE, or MARKET VALUE columns in your answer.\n\n"
+        "Respond with ONLY a JSON object of the exact shape "
+        '{"rows": [{"scripName": "...", "buyPrice": 0, "quantity": 0}, ...]} '
+        "-- no markdown fences, no commentary, nothing before or after it."
+    )
+    resp = client.messages.create(
+        model=_ANTHROPIC_MODEL,
+        max_tokens=4096,
+        messages=[{
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": mime_type,
+                        "data": base64.standard_b64encode(raw).decode("utf-8"),
+                    },
+                },
+                {"type": "text", "text": prompt},
+            ],
+        }],
+    )
+    text = next((b.text for b in resp.content if b.type == "text"), "")
+    if not text:
+        return []
+    # Strip a ```json ... ``` fence if the model wrapped it despite the
+    # instruction not to -- cheap insurance, costs nothing when absent.
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.strip("`").removeprefix("json").strip()
+    table = json.loads(text)
+    return [
+        {
+            "scripName": r["scripName"].strip(),
+            "buyPrice":  round(float(r["buyPrice"]), 4),
+            "quantity":  float(r["quantity"]),
+            "buyValue":  round(float(r["buyPrice"]) * float(r["quantity"]), 2),
+        }
+        for r in table.get("rows", []) if r.get("scripName", "").strip()
+    ]
+
+
 def _ocr_image_to_simple_rows(raw: bytes) -> list[dict]:
     """No real table structure to read at all -- OCRs every word with its
     pixel position, groups words into rows using Tesseract's OWN line
@@ -669,11 +741,17 @@ async def preview_holdings_upload_simple(request: Request, basketKey: str = Form
     elif fname.endswith((".png", ".jpg", ".jpeg", ".webp")):
         parsed = []
         extraction_method = "ocr"
-        if _GEMINI_API_KEY:
-            mime_type = {
-                ".png": "image/png", ".jpg": "image/jpeg",
-                ".jpeg": "image/jpeg", ".webp": "image/webp",
-            }[next(ext for ext in (".png", ".jpg", ".jpeg", ".webp") if fname.endswith(ext))]
+        mime_type = {
+            ".png": "image/png", ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg", ".webp": "image/webp",
+        }[next(ext for ext in (".png", ".jpg", ".jpeg", ".webp") if fname.endswith(ext))]
+        if _ANTHROPIC_API_KEY:
+            try:
+                parsed = _claude_image_to_simple_rows(raw, mime_type)
+                extraction_method = "claude"
+            except Exception as e:
+                print(f"[holdings_import] Claude extraction failed, falling back to Gemini/OCR: {e}")
+        if not parsed and _GEMINI_API_KEY:
             try:
                 parsed = _gemini_image_to_simple_rows(raw, mime_type)
                 extraction_method = "gemini"
@@ -682,7 +760,7 @@ async def preview_holdings_upload_simple(request: Request, basketKey: str = Form
         if not parsed:
             try:
                 parsed = _ocr_image_to_simple_rows(raw)
-                if extraction_method != "gemini":
+                if extraction_method not in ("claude", "gemini"):
                     extraction_method = "ocr"
             except Exception as e:
                 raise HTTPException(400, f"Could not read this image: {e}")
