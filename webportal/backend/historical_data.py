@@ -106,8 +106,9 @@ async def post_daily_values(body: dict, request: Request):
         bench  = entry.get("benchmark")
         if not basket or value is None or bench is None:
             continue
-        if basket not in hi:
+        if basket not in BASKET_DISPLAY_NAMES:
             continue
+        hi.setdefault(basket, {"data": []})
         data = hi[basket]["data"]
         # Remove existing entry for this date (overwrite)
         hi[basket]["data"] = [e for e in data if e["date"] != date_str]
@@ -129,8 +130,9 @@ async def import_excel_history(request: Request, basket: str = Form(...), file: 
     _require_admin(request)
     hi = _load_historical_index()
 
-    if basket not in hi:
+    if basket not in BASKET_DISPLAY_NAMES:
         raise HTTPException(status_code=400, detail=f"Unknown basket: {basket}")
+    hi.setdefault(basket, {"data": []})
 
     raw = await file.read()
     try:
@@ -288,11 +290,12 @@ async def import_excel_multi(request: Request, files: list[UploadFile] = File(..
             results.append({"file": fname, "ok": False, "error": str(e)})
             continue
 
-        if not basket_key or basket_key not in hi:
+        if not basket_key or basket_key not in BASKET_DISPLAY_NAMES:
             results.append({"file": fname, "ok": False,
                             "error": f"Could not detect basket from column header. "
                                      f"Please rename column B to include the basket name (e.g. 'Green Energy Theme')."})
             continue
+        hi.setdefault(basket_key, {"data": []})
 
         existing_dates = {e["date"] for e in hi[basket_key]["data"]}
         last_date      = max(existing_dates) if existing_dates else "0000-00-00"

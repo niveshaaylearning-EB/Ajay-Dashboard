@@ -255,7 +255,7 @@ export default function App() {
   const [basketStockMap,    setBasketStockMap]    = useState(null);
   const [basketWeightMap,   setBasketWeightMap]   = useState(null);
   const [perfByTenure,      setPerfByTenure]      = useState({}); // {nseCode: {"1M":pct, "3M":pct, ...}}
-  const [selectedTenure,    setSelectedTenure]    = useState('1M');
+  const [selectedTenure,    setSelectedTenure]    = useState('1D');
 
   const loadGenRef = useRef(0);
 

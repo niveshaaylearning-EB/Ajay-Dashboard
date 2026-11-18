@@ -137,11 +137,13 @@ export default function AllClientsPage() {
     }
   };
 
-  const filteredRows = rows.filter(r => {
-    if (!searchTerm) return true;
-    const q = searchTerm.toLowerCase();
-    return r.label.toLowerCase().includes(q) || (r.clientId || '').toLowerCase().includes(q);
-  });
+  const filteredRows = rows
+    .filter(r => {
+      if (!searchTerm) return true;
+      const q = searchTerm.toLowerCase();
+      return r.label.toLowerCase().includes(q) || (r.clientId || '').toLowerCase().includes(q);
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
   const totalCapital = rows.reduce((s, r) => s + (r.totalCapital || 0), 0);
   const totalCurrent = rows.reduce((s, r) => s + (r.currentValue || 0), 0);
 

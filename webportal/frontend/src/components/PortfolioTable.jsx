@@ -387,7 +387,7 @@ export default function PortfolioTable({
   onAddRow, onRemoveRow,
   onInfoClick, onRemoveSimAdded,
   avgMarketCap, medianPE,
-  tenure = '1M', onTenureChange, perfByTenure,
+  tenure = '1D', onTenureChange, perfByTenure,
 }) {
   const [sortKey,   setSortKey]   = useState('nseCode');
   const [sortDir,   setSortDir]   = useState('asc');

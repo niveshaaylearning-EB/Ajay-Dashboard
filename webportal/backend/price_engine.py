@@ -27,6 +27,7 @@ from persistence import (
     BASKET_DISPLAY_NAMES, _all_nse_codes, _load_portfolios, _require_admin,
     add_client, rename_client, delete_client, _log_activity,
     _load_client_capital, _save_client_capital, _load_historical_index, _load_client_id_map,
+    _LIQUIDCASE_CODE,
 )
 
 router = APIRouter()
@@ -1209,13 +1210,22 @@ async def admin_set_client_capital(key: str, request: Request, body: dict):
 async def get_clients_summary():
     """One row per client for the All Clients overview tab and the header's
     client search: display name, broker Client ID (if linked), admin-entered
-    total capital, since-inception return (same index series the Overview
-    KPI panel's "Since Inception" figure already uses), the resulting
-    current value, and live stock count. Read-only, no admin gate (matches
-    every other basket-list read endpoint in this app)."""
+    total capital, since-inception return, the resulting current value, and
+    live stock count. Read-only, no admin gate (matches every other
+    basket-list read endpoint in this app).
+
+    Since-inception % prefers the manually-imported historical_index.json
+    series (the audited, admin-confirmed figure) when it actually has data,
+    but falls back to a live estimate computed from each stock's allocation
+    x (CMP / buy price) -- historical_index.json is only ever populated by
+    a manual Excel import that may never have been done for a given basket,
+    and leaving currentValue null in that case meant this whole tab (and
+    the single-basket KPI panel, which reads the same field) just showed
+    "--" for every client with no import on file."""
     portfolios   = _load_portfolios()
     capital_map  = _load_client_capital()
     hist         = _load_historical_index()
+    live         = await fetch_live_batch()
     # client_id_map.json is {clientId: basketKey} -- invert it once so each
     # basket can look up its own linked Client ID (there's at most one in
     # practice; a basket linked to several just shows the first found).
@@ -1240,6 +1250,26 @@ async def get_clients_summary():
         current_value = None
         if total_capital is not None and since_inception_pct is not None:
             current_value = round(total_capital * (1 + since_inception_pct), 2)
+
+        if current_value is None and total_capital is not None and stocks:
+            # Cash (and anything missing a live CMP/buy price) just holds its
+            # invested value -- no growth modeled, same as the rest of the
+            # app treats an un-priceable position.
+            live_value = 0.0
+            for s in stocks:
+                alloc = s.get("allocation") or 0
+                if alloc <= 0:
+                    continue
+                invested = alloc * total_capital
+                code      = (s.get("nseCode") or "").strip().upper()
+                buy_price = s.get("buyPrice")
+                cmp       = (live.get(code) or {}).get("cmp")
+                if code == _LIQUIDCASE_CODE or not buy_price or cmp is None:
+                    live_value += invested
+                else:
+                    live_value += invested * (cmp / buy_price)
+            current_value = round(live_value, 2)
+            since_inception_pct = (live_value / total_capital) - 1 if total_capital else None
 
         rows.append({
             "key":               key,
