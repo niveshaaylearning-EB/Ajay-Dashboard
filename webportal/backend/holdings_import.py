@@ -76,41 +76,69 @@ _GEMINI_MODEL = "gemini-flash-latest"
 _ANTHROPIC_API_KEY = _os.environ.get("ANTHROPIC_API_KEY", "")
 _ANTHROPIC_MODEL = "claude-sonnet-5-5"
 
-# Hard monthly ceiling on Claude vision calls -- this key is postpaid, so this
-# is a safety net against a bug/loop/abuse running up a surprise bill, not a
-# cost-tuning knob (normal usage is nowhere near this). Once hit for the
-# month, calls silently fall through to Gemini/OCR instead of erroring, same
-# as any other Claude-call failure. ~1-1.5 cents/call -> 300 calls is ~$3-4.
-_CLAUDE_VISION_MONTHLY_CAP = int(_os.environ.get("CLAUDE_VISION_MONTHLY_CAP", "300"))
+# Hard monthly dollar ceiling on Claude vision spend -- this key is postpaid
+# and its Console spend limit is set to $10/month as the account-level
+# backstop; this in-code budget mirrors that so the app falls back to
+# Gemini/OCR gracefully at ~$10 instead of the Console limit abruptly
+# erroring out every Claude call for the rest of the month. Priced
+# conservatively (every token at the un-cached input/output rate, so actual
+# spend run this way is an overestimate, never an undercount).
+_ANTHROPIC_PRICE_PER_M_INPUT = 2.0   # claude-sonnet-5-5: $2 / 1M input tokens
+_ANTHROPIC_PRICE_PER_M_OUTPUT = 10.0  # claude-sonnet-5-5: $10 / 1M output tokens
+_CLAUDE_VISION_MONTHLY_BUDGET_USD = float(_os.environ.get("CLAUDE_VISION_MONTHLY_BUDGET_USD", "10"))
 _CLAUDE_VISION_USAGE_FILE = _os.path.join(_os.path.dirname(__file__), "claude_vision_usage.json")
 
 
-def _claude_vision_usage_ok() -> bool:
-    """True if this month's Claude vision call count is still under the cap
-    -- and atomically counts the call being about to happen. Best-effort: a
-    corrupt/missing usage file just resets the count rather than blocking
-    the feature entirely."""
-    import json as _json
+def _claude_vision_month_key() -> str:
     from datetime import datetime as _dt
+    return _dt.utcnow().strftime("%Y-%m")
 
-    month_key = _dt.utcnow().strftime("%Y-%m")
+
+def _claude_vision_budget_ok() -> bool:
+    """True if this month's tracked Claude vision spend is still under
+    budget. Read-only check -- the actual cost of the call about to happen
+    isn't known until it returns, so it's recorded separately afterwards via
+    _record_claude_vision_cost(). Best-effort: a corrupt/missing usage file
+    just resets to $0 rather than blocking the feature entirely."""
+    import json as _json
+
+    month_key = _claude_vision_month_key()
     try:
         with open(_CLAUDE_VISION_USAGE_FILE, "r") as f:
             data = _json.load(f)
     except Exception:
         data = {}
-    count = data.get(month_key, 0)
-    if count >= _CLAUDE_VISION_MONTHLY_CAP:
-        print(f"[holdings_import] Claude vision monthly cap ({_CLAUDE_VISION_MONTHLY_CAP}) "
-              f"reached for {month_key} -- falling back to Gemini/OCR.")
+    spent = data.get(month_key, 0.0)
+    if spent >= _CLAUDE_VISION_MONTHLY_BUDGET_USD:
+        print(f"[holdings_import] Claude vision monthly budget "
+              f"(${_CLAUDE_VISION_MONTHLY_BUDGET_USD:.2f}) reached for {month_key} "
+              f"(spent ~${spent:.2f}) -- falling back to Gemini/OCR.")
         return False
-    data = {month_key: count + 1}  # only this month's count needs to persist
+    return True
+
+
+def _record_claude_vision_cost(usage) -> None:
+    """Adds this call's estimated cost to the current month's running total.
+    Best-effort -- a failure here just means the next call re-reads whatever
+    was last persisted, never blocks the actual extraction result."""
+    import json as _json
+
+    cost = (
+        (usage.input_tokens or 0) * _ANTHROPIC_PRICE_PER_M_INPUT / 1_000_000
+        + (usage.output_tokens or 0) * _ANTHROPIC_PRICE_PER_M_OUTPUT / 1_000_000
+    )
+    month_key = _claude_vision_month_key()
+    try:
+        with open(_CLAUDE_VISION_USAGE_FILE, "r") as f:
+            data = _json.load(f)
+    except Exception:
+        data = {}
+    data = {month_key: data.get(month_key, 0.0) + cost}  # only this month needs to persist
     try:
         with open(_CLAUDE_VISION_USAGE_FILE, "w") as f:
             _json.dump(data, f)
     except Exception as e:
-        print(f"[holdings_import] Could not persist Claude vision usage count: {e}")
-    return True
+        print(f"[holdings_import] Could not persist Claude vision usage cost: {e}")
 
 
 def _find_client_id(rows) -> str | None:
@@ -653,6 +681,7 @@ def _claude_image_to_simple_rows(raw: bytes, mime_type: str) -> list[dict]:
             ],
         }],
     )
+    _record_claude_vision_cost(resp.usage)
     text = next((b.text for b in resp.content if b.type == "text"), "")
     if not text:
         return []
@@ -781,7 +810,7 @@ async def preview_holdings_upload_simple(request: Request, basketKey: str = Form
             ".png": "image/png", ".jpg": "image/jpeg",
             ".jpeg": "image/jpeg", ".webp": "image/webp",
         }[next(ext for ext in (".png", ".jpg", ".jpeg", ".webp") if fname.endswith(ext))]
-        if _ANTHROPIC_API_KEY and _claude_vision_usage_ok():
+        if _ANTHROPIC_API_KEY and _claude_vision_budget_ok():
             try:
                 parsed = _claude_image_to_simple_rows(raw, mime_type)
                 extraction_method = "claude"
