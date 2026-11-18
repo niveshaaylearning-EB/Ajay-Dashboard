@@ -376,17 +376,19 @@ export default function AllClientsPage() {
                   <th style={{ textAlign: 'center', width: '2rem' }}>
                     <input type="checkbox" checked={allFilteredSelected} onChange={toggleSelectAll} title="Select all" />
                   </th>
+                  <th style={{ textAlign: 'center', width: '2.5rem' }}>Sr No</th>
                   {['Client', 'Client ID', 'Stocks', 'Invested Value', 'Current Value', 'Return', ''].map((h, i) => (
                     <th key={h || i} style={{ textAlign: i === 0 || i === 1 ? 'left' : (i === 6 ? 'center' : 'right') }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filteredRows.map(row => (
+                {filteredRows.map((row, idx) => (
                   <tr key={row.key}>
                     <td style={{ textAlign: 'center' }}>
                       <input type="checkbox" checked={selectedKeys.has(row.key)} onChange={() => toggleSelect(row.key)} />
                     </td>
+                    <td style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{idx + 1}</td>
                     <td style={{ textAlign: 'left', fontWeight: 600, color: 'var(--text-primary)' }}>{row.label}</td>
                     <td style={{ textAlign: 'left', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{row.clientId || '—'}</td>
                     <td>{row.stockCount}</td>

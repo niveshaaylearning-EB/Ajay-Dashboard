@@ -268,9 +268,14 @@ export default function App() {
   }, []);
   useEffect(() => { refreshBasketOptions(); }, [refreshBasketOptions]);
 
-  // Auto-select the first client once the list loads, if none is selected yet
+  // Auto-select the alphabetically-first client once the list loads, if none
+  // is selected yet -- basketOptions itself comes back in whatever order the
+  // backend's dict happens to iterate in, not sorted.
   useEffect(() => {
-    if (!basketKey && basketOptions.length > 0) setBasketKey(basketOptions[0].key);
+    if (!basketKey && basketOptions.length > 0) {
+      const first = [...basketOptions].sort((a, b) => a.label.localeCompare(b.label))[0];
+      setBasketKey(first.key);
+    }
   }, [basketKey, basketOptions]);
 
   // Full per-client summary (total capital, since-inception return, broker
