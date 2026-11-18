@@ -77,15 +77,15 @@ _ANTHROPIC_API_KEY = _os.environ.get("ANTHROPIC_API_KEY", "")
 _ANTHROPIC_MODEL = "claude-sonnet-5-5"
 
 # Hard monthly dollar ceiling on Claude vision spend -- this key is postpaid
-# and its Console spend limit is set to $10/month as the account-level
+# and its Console spend limit is set to $5/month as the account-level
 # backstop; this in-code budget mirrors that so the app falls back to
-# Gemini/OCR gracefully at ~$10 instead of the Console limit abruptly
+# Gemini/OCR gracefully at ~$5 instead of the Console limit abruptly
 # erroring out every Claude call for the rest of the month. Priced
 # conservatively (every token at the un-cached input/output rate, so actual
 # spend run this way is an overestimate, never an undercount).
 _ANTHROPIC_PRICE_PER_M_INPUT = 2.0   # claude-sonnet-5-5: $2 / 1M input tokens
 _ANTHROPIC_PRICE_PER_M_OUTPUT = 10.0  # claude-sonnet-5-5: $10 / 1M output tokens
-_CLAUDE_VISION_MONTHLY_BUDGET_USD = float(_os.environ.get("CLAUDE_VISION_MONTHLY_BUDGET_USD", "10"))
+_CLAUDE_VISION_MONTHLY_BUDGET_USD = float(_os.environ.get("CLAUDE_VISION_MONTHLY_BUDGET_USD", "5"))
 _CLAUDE_VISION_USAGE_FILE = _os.path.join(_os.path.dirname(__file__), "claude_vision_usage.json")
 
 
