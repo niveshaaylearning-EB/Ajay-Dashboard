@@ -76,6 +76,42 @@ _GEMINI_MODEL = "gemini-flash-latest"
 _ANTHROPIC_API_KEY = _os.environ.get("ANTHROPIC_API_KEY", "")
 _ANTHROPIC_MODEL = "claude-sonnet-5-5"
 
+# Hard monthly ceiling on Claude vision calls -- this key is postpaid, so this
+# is a safety net against a bug/loop/abuse running up a surprise bill, not a
+# cost-tuning knob (normal usage is nowhere near this). Once hit for the
+# month, calls silently fall through to Gemini/OCR instead of erroring, same
+# as any other Claude-call failure. ~1-1.5 cents/call -> 300 calls is ~$3-4.
+_CLAUDE_VISION_MONTHLY_CAP = int(_os.environ.get("CLAUDE_VISION_MONTHLY_CAP", "300"))
+_CLAUDE_VISION_USAGE_FILE = _os.path.join(_os.path.dirname(__file__), "claude_vision_usage.json")
+
+
+def _claude_vision_usage_ok() -> bool:
+    """True if this month's Claude vision call count is still under the cap
+    -- and atomically counts the call being about to happen. Best-effort: a
+    corrupt/missing usage file just resets the count rather than blocking
+    the feature entirely."""
+    import json as _json
+    from datetime import datetime as _dt
+
+    month_key = _dt.utcnow().strftime("%Y-%m")
+    try:
+        with open(_CLAUDE_VISION_USAGE_FILE, "r") as f:
+            data = _json.load(f)
+    except Exception:
+        data = {}
+    count = data.get(month_key, 0)
+    if count >= _CLAUDE_VISION_MONTHLY_CAP:
+        print(f"[holdings_import] Claude vision monthly cap ({_CLAUDE_VISION_MONTHLY_CAP}) "
+              f"reached for {month_key} -- falling back to Gemini/OCR.")
+        return False
+    data = {month_key: count + 1}  # only this month's count needs to persist
+    try:
+        with open(_CLAUDE_VISION_USAGE_FILE, "w") as f:
+            _json.dump(data, f)
+    except Exception as e:
+        print(f"[holdings_import] Could not persist Claude vision usage count: {e}")
+    return True
+
 
 def _find_client_id(rows) -> str | None:
     """The 'Client ID' label and its value can land in any column depending on
@@ -745,7 +781,7 @@ async def preview_holdings_upload_simple(request: Request, basketKey: str = Form
             ".png": "image/png", ".jpg": "image/jpeg",
             ".jpeg": "image/jpeg", ".webp": "image/webp",
         }[next(ext for ext in (".png", ".jpg", ".jpeg", ".webp") if fname.endswith(ext))]
-        if _ANTHROPIC_API_KEY:
+        if _ANTHROPIC_API_KEY and _claude_vision_usage_ok():
             try:
                 parsed = _claude_image_to_simple_rows(raw, mime_type)
                 extraction_method = "claude"

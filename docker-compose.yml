@@ -44,6 +44,7 @@ services:
       - ./webportal/backend/undo_snapshots.json:/app/webportal/backend/undo_snapshots.json
       - ./webportal/backend/activity_log.json:/app/webportal/backend/activity_log.json
       - ./webportal/backend/rollback_points.json:/app/webportal/backend/rollback_points.json
+      - ./webportal/backend/claude_vision_usage.json:/app/webportal/backend/claude_vision_usage.json
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=5)"]
       interval: 30s
